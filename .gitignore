@@ -1,0 +1,98 @@
+# .gitignore para proyecto fullstack: Flask (backend) + frontend (Node)
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+celerybeat-schedule
+*.so
+
+# Virtualenv / entorno
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+pip-wheel-metadata/
+.python-version
+
+# Flask / configuración local / secretos
+.env
+.env.*
+.flaskenv
+instance/
+*.key
+*.pem
+secrets.json
+
+# Bases de datos locales / archivos generados
+*.sqlite3
+*.db
+*.sqlite
+*.log
+
+# Migrations normalmente deberían versionarse; si no, descomenta:
+# migrations/
+
+# Paquetes / builds / empaquetado
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+*.tar.gz
+
+# Testing / coverage
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+.mypy_cache/
+
+# Node / frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.pnpm-store/
+package-lock.json.log
+
+# Builds de front (ajusta rutas según tu estructura)
+frontend/build/
+frontend/dist/
+build/
+dist/
+*.map
+
+# Cachés y archivos temporales de bundlers / herramientas
+.cache/
+.next/
+.nuxt/
+.vite/
+.svelte-kit/
+.parcel-cache/
+
+# IDEs y editores
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker / CI / otros
+docker-compose.override.yml
+.env.*.local
+
+# archivos de lock generados por herramientas locales (opcional)
+# yarn.lock
+# package-lock.json

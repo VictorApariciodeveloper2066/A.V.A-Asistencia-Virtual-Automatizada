@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Student Manager Login</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    function setActionForForm(action) {
+        const form = document.getElementById('auth-form');
+        if (action === 'login') {
+            form.action = "{{ url_for('login') }}";
+            form.method = "post";
+            form.submit();
+        }
+    }
+</script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#38e079",
+                        "primary-hover": "#2bc968",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122017",
+                        "card-dark": "#1b3124",
+                        "input-border": "#366347",
+                        "input-bg": "#15251c",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "Noto Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem", 
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-4">
+<!-- Main Container -->
+<div class="relative w-full max-w-md mx-auto">
+<!-- Decorative Elements -->
+<div class="absolute -top-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Login Card -->
+<div class="relative bg-white dark:bg-card-dark rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-white/5">
+<!-- Header Section -->
+<div class="pt-10 pb-6 px-8 text-center">
+<div class="w-16 h-16 bg-primary/20 rounded-2xl mx-auto flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined text-4xl">school</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-3xl font-bold leading-tight tracking-tight mb-2">Bienvenido de nuevo</h2>
+<p class="text-gray-500 dark:text-[#96c5a8] text-sm font-normal">Accede a tu panel de gestión académica</p>
+</div>
+<!-- Form Section -->
+<div class="px-8 pb-10">
+<form id="auth-form" class="flex flex-col gap-5" action="{{ url_for('login') }}" method="post">
+    {% if error %}
+    <div class="mb-4 rounded-lg px-4 py-3 text-sm text-red-800 bg-red-50 border border-red-200">
+        {{ error }}
+    </div>
+    {% endif %}
+<!-- Username Field -->
+<div class="flex flex-col gap-2">
+<label class="text-gray-700 dark:text-white text-sm font-medium leading-normal">Usuario</label>
+<div class="relative flex items-center">
+<input value="{{ username or request.form.get('username','') }}" class="w-full h-12 rounded-lg pl-11 pr-4 text-gray-900 dark:text-white bg-gray-50 dark:bg-input-bg border border-gray-300 dark:border-input-border focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-gray-400 dark:placeholder:text-[#5a8069] transition-all duration-200 outline-none text-base" placeholder="Ingresa tu usuario o correo" type="text" name="username"/>
+<div class="absolute left-3.5 flex items-center justify-center text-gray-400 dark:text-[#5a8069] pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</div>
+</div>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<label class="text-gray-700 dark:text-white text-sm font-medium leading-normal">Contraseña</label>
+</div>
+<div class="relative flex items-center">
+<input class="w-full h-12 rounded-lg pl-11 pr-11 text-gray-900 dark:text-white bg-gray-50 dark:bg-input-bg border border-gray-300 dark:border-input-border focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-gray-400 dark:placeholder:text-[#5a8069] transition-all duration-200 outline-none text-base" placeholder="••••••••" type="password" name="password"/>
+<div class="absolute left-3.5 flex items-center justify-center text-gray-400 dark:text-[#5a8069] pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</div>
+<button class="absolute right-3.5 flex items-center justify-center text-gray-400 dark:text-[#5a8069] hover:text-gray-600 dark:hover:text-primary transition-colors cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Forgot Password Link -->
+<div class="flex justify-end">
+<a class="text-primary hover:text-primary-hover text-sm font-medium hover:underline transition-colors" href="#">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+</div>
+<!-- Login Button -->
+<button class="mt-2 w-full h-12 bg-primary hover:bg-primary-hover text-[#122118] font-bold text-base rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2">
+<span>Iniciar Sesión</span>
+<span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+</form>
+<!-- Footer / Register Link (Optional Context) -->
+<div class="mt-8 text-center border-t border-gray-200 dark:border-white/10 pt-6">
+<p class="text-gray-500 dark:text-[#96c5a8] text-sm">
+                        ¿No tienes una cuenta? 
+                        <a class="text-primary font-semibold hover:underline ml-1" href="{{url_for('register')}}" >Registrate ahora</a>
+</p>
+</div>
+</div>
+</div>
+<!-- Background Image for context (Subtle) -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 opacity-[0.03] pointer-events-none" data-alt="Abstract pattern of a meeting room or classroom setting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA1J7IPWKDewRONMQyRz6VPIFn99ZeTgyy7pYM-ZECQDxTyMFOS__bCddmneLKlFjP1xhpZDNa2hp8fxP2Tg0OuSmfQ235nOpOjpOkPKFyn2qxLf0upjqpwJfKPU_GRVTIb1kM8mYvlt5XvriV6CUsQlso66nzayAlhJP7RshXbIkYnP0-SCiPd71Ax7Cx1HFLKNJOqFBB06TZnf_Bp1Qjp2W_3ZcIJBO7ldDFoTjQ2pXbDBBxsBGeOqpjJ_E149GJYljzpAUEY3cM'); background-size: cover; background-position: center;">
+</div>
+</div>
+</body></html>

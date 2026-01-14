@@ -1,0 +1,127 @@
+<!-- === Predashboard: Doctype y Head (meta, fuentes, Tailwind) === -->
+<!DOCTYPE html>
+<html class="light dark" lang="es"><head>
+<!-- Meta básicos -->
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Selección de Rol (Asistencia Virtual)</title>
+<!-- Fuentes -->
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind y configuración -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        // Tailwind config: darkMode, colores y tipografías
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#39E079",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122017"
+                    },
+                    fontFamily: {
+                        display: "Lexend"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    }
+                }
+            }
+        };
+    </script>
+<!-- Estilos pequeños y utilidades -->
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+</style>
+</head>
+
+<!-- === Body: layout principal y efectos de fondo === -->
+<body class="font-display bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 min-h-screen flex flex-col justify-center relative overflow-hidden p-4">
+
+    <!-- Fondo decorativo (formas borrosas) -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div class="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] bg-primary/5 rounded-full blur-3xl"></div>
+        <div class="absolute top-[30%] -right-[10%] w-[40vw] h-[40vw] bg-blue-500/5 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Contenedor principal (card centrada) -->
+    <div class="relative z-10 w-full max-w-4xl mx-auto">
+
+        <!-- Cabecera: icono, título y descripción -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center p-3 mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <span class="material-symbols-outlined text-primary text-3xl">school</span>
+                <span class="ml-2 font-bold text-gray-900 dark:text-white text-xl">Asistencia Virtual</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">Selecciona tu perfil</h1>
+            <p class="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
+                Para brindarte las herramientas adecuadas, necesitamos saber si eres estudiante o profesor.
+            </p>
+        </div>
+
+        <!-- === Grid de selección de rol (Estudiante / Profesor) === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-3xl mx-auto">
+
+            <!-- Opción Estudiante -->
+            <button class="group relative flex flex-col items-center p-8 bg-white dark:bg-gray-900 rounded-2xl border-2 border-transparent hover:border-primary/50 dark:hover:border-primary/50 shadow-lg hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 w-full text-center">
+                <!-- Icono de acción al pasar el ratón -->
+                <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1 duration-300">
+                    <span class="material-symbols-outlined text-primary">arrow_forward</span>
+                </div>
+                <div class="size-24 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300 flex items-center justify-center mb-6">
+                    <span class="material-symbols-outlined text-5xl fill">backpack</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Soy Estudiante</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed px-4">
+                    Accede a tu horario de clases, materiales de estudio y seguimiento de asistencia.
+                </p>
+                <div class="w-full mt-auto">
+                    <div class="w-full py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium group-hover:bg-primary group-hover:border-primary group-hover:text-white transition-all duration-300">
+                        Continuar como Estudiante
+                    </div>
+                </div>
+            </button>
+
+            <!-- Opción Profesor -->
+            <button class="group relative flex flex-col items-center p-8 bg-white dark:bg-gray-900 rounded-2xl border-2 border-transparent hover:border-blue-500/50 dark:hover:border-blue-500/50 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 w-full text-center">
+                <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1 duration-300">
+                    <span class="material-symbols-outlined text-blue-500">arrow_forward</span>
+                </div>
+                <div class="size-24 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300 flex items-center justify-center mb-6">
+                    <span class="material-symbols-outlined text-5xl fill">cast_for_education</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Soy Profesor</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed px-4">
+                    Gestiona tus cursos, registra asistencias y evalúa el progreso de tus alumnos.
+                </p>
+                <div class="w-full mt-auto">
+                    <div class="w-full py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium group-hover:bg-blue-500 group-hover:border-blue-500 group-hover:text-white transition-all duration-300">
+                        Continuar como Profesor
+                    </div>
+                </div>
+            </button>
+
+        </div>
+
+        <!-- Footer legal: términos y privacidad -->
+        <div class="mt-12 text-center">
+            <p class="text-sm text-gray-400 dark:text-gray-500">
+                Al continuar, aceptas nuestros 
+                <a class="underline hover:text-gray-600 dark:hover:text-gray-300" href="#">Términos de Servicio</a> y 
+                <a class="underline hover:text-gray-600 dark:hover:text-gray-300" href="#">Política de Privacidad</a>.
+            </p>
+        </div>
+
+    </div>
+
+</body></html>
