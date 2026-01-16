@@ -25,7 +25,7 @@
         function setActionForForm(action) {
             const form = document.getElementById('auth-form');
             if (action === 'login') {
-                form.action = "{{ url_for('front.login') }}";
+                form.action = "{{ url_for('auth.login') }}";
                 form.method = "post";
                 form.submit();
             }
@@ -87,12 +87,13 @@
             </div>
             <!-- Form Section -->
             <div class="px-8 pb-10">
-                <form id="auth-form" class="flex flex-col gap-5" action="{{ url_for('front.login') }}" method="post">
+                <form id="auth-form" class="flex flex-col gap-5" action="{{ url_for('auth.login') }}" method="post">
                     {% if error %}
                     <div class="mb-4 rounded-lg px-4 py-3 text-sm text-red-800 bg-red-50 border border-red-200">
                         {{ error }}
                     </div>
                     {% endif %}
+                    <div id="login-error" class="mb-4 rounded-lg px-4 py-3 text-sm text-red-800 bg-red-50 border border-red-200" style="display:none;"></div>
                     <!-- Username Field -->
                     <div class="flex flex-col gap-2">
                         <label class="text-gray-700 dark:text-white text-sm font-medium leading-normal">Usuario</label>
@@ -146,7 +147,7 @@
                     <p class="text-gray-500 dark:text-[#96c5a8] text-sm">
                         ¿No tienes una cuenta?
                         <a class="text-primary font-semibold hover:underline ml-1"
-                            href="{{url_for('register')}}">Registrate ahora</a>
+                            href="{{ url_for('front.register_page') }}">Registrate ahora</a>
                     </p>
                 </div>
             </div>
@@ -157,6 +158,38 @@
             style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA1J7IPWKDewRONMQyRz6VPIFn99ZeTgyy7pYM-ZECQDxTyMFOS__bCddmneLKlFjP1xhpZDNa2hp8fxP2Tg0OuSmfQ235nOpOjpOkPKFyn2qxLf0upjqpwJfKPU_GRVTIb1kM8mYvlt5XvriV6CUsQlso66nzayAlhJP7RshXbIkYnP0-SCiPd71Ax7Cx1HFLKNJOqFBB06TZnf_Bp1Qjp2W_3ZcIJBO7ldDFoTjQ2pXbDBBxsBGeOqpjJ_E149GJYljzpAUEY3cM'); background-size: cover; background-position: center;">
         </div>
     </div>
+    <script>
+        (function(){
+            const form = document.getElementById('auth-form');
+            const errorBox = document.getElementById('login-error');
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                errorBox.style.display = 'none';
+                const username = (form.querySelector('input[name="username"]') || {}).value || '';
+                const password = (form.querySelector('input[name="password"]') || {}).value || '';
+                try {
+                    const res = await fetch("{{ url_for('auth.login') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: username, password: password }),
+                        credentials: 'same-origin'
+                    });
+                    const data = await res.json().catch(()=>({}));
+                    if (res.ok) {
+                        window.location.href = "{{ url_for('front.predashboard') }}";
+                    } else {
+                        const msg = data.error || data.message || 'Credenciales inválidas';
+                        errorBox.textContent = msg;
+                        errorBox.style.display = 'block';
+                    }
+                } catch (err) {
+                    console.error(err);
+                    errorBox.textContent = 'Error de red. Intenta nuevamente.';
+                    errorBox.style.display = 'block';
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>

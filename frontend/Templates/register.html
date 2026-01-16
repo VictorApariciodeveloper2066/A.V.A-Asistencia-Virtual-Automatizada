@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html class="dark" lang="es"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>StudentManager - Registro</title>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script>
-    function setActionForForm(action) {
-        const form = document.getElementById('register-form');
-        if (action === 'register') {
-            form.action = "{{ url_for('register') }}";
-            form.method = "post";
-            form.submit();
+<html class="dark" lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>StudentManager - Registro</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        function setActionForForm(action) {
+            const form = document.getElementById('register-form');
+            if (action === 'register') {
+                form.action = "{{ url_for('front.register_page') }}";
+                form.method = "post";
+                form.submit();
+            }
         }
-    }
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -37,113 +43,163 @@
         }
     </script>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen flex flex-col overflow-x-hidden selection:bg-primary selection:text-background-dark">
-<div class="layout-container flex h-full grow flex-col">
-<!-- Header: logo + auth action -->
-<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-[#264532] px-6 lg:px-10 py-3 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
-<div class="flex items-center gap-3 text-slate-900 dark:text-white cursor-pointer">
-<div class="size-8 text-primary">
-<svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_6_319)">
-<path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
-</g>
-<defs>
-<clipPath id="clip0_6_319"><rect fill="white" height="48" width="48"></rect></clipPath>
-</defs>
-</svg>
-</div>
-<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">StudentManager</h2>
-</div>
-    <!-- Header: auth action (login link/button) -->
-<div class="flex gap-2">
-<span class="hidden sm:flex items-center text-sm font-medium text-slate-600 dark:text-text-secondary mr-2">¿Ya tienes una cuenta?</span>
-<a class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-6 bg-slate-200 hover:bg-slate-300 dark:bg-[#264532] dark:hover:bg-[#2f553d] text-slate-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors" href="{{ url_for('front.login') }}">
-<span class="truncate">Iniciar Sesión</span>
-</a>
-</div>
-</header>
-<!-- Main content: registration -->
-<main class="flex flex-1 justify-center py-10 px-4 sm:px-6">
-<div class="layout-content-container flex flex-col max-w-[520px] w-full flex-1">
-<div class="flex flex-col gap-2 p-4 text-center mb-4">
-<h1 class="text-slate-900 dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em]">Crea tu cuenta</h1>
-<p class="text-slate-500 dark:text-text-secondary text-base font-normal leading-normal">Únete para gestionar tus clases y calificaciones fácilmente.</p>
-</div>
-    <!-- Card: form container -->
-<div class="bg-white dark:bg-surface-dark/50 rounded-xl border border-slate-200 dark:border-border-dark p-6 sm:p-8 shadow-sm">
-    <!-- Form Section: register form and fields -->
-<form class="flex flex-col gap-5" id="register_form" action="{{ url_for('register') }}" method="post" onclick="setActionForm('login')">
-<div class="flex flex-col gap-2">
-<label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Nombre completo</label>
-<div class="relative">
-<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
-<span class="material-symbols-outlined text-[20px]">person</span>
-</span>
-<input name="username" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-4 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all" placeholder="ej. Juan Pérez" type="text"/>
-</div>
-</div>
-<div class="flex flex-col gap-2">
-<label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Correo electrónico</label>
-<div class="relative">
-<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
-<span class="material-symbols-outlined text-[20px]">mail</span>
-</span>
-<input name="email" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-4 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all" placeholder="ej. juan@estudiante.edu" type="email"/>
-</div>
-</div>
-<div class="flex flex-col sm:flex-row gap-5">
-<div class="flex flex-col gap-2 flex-1">
-<label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Contraseña</label>
-<div class="relative">
-<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
-<span class="material-symbols-outlined text-[20px]">lock</span>
-</span>
-<input name="password" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-10 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all" placeholder="••••••••" type="password"/>
-<button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary hover:text-slate-600 dark:hover:text-white" type="button">
-<span class="material-symbols-outlined text-[20px]">visibility_off</span>
-</button>
-</div>
-</div>
-<div class="flex flex-col gap-2 flex-1">
-<label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Confirmar</label>
-<div class="relative">
-<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
-<span class="material-symbols-outlined text-[20px]">lock_reset</span>
-</span>
-<input name="password_confirm" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-4 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all" placeholder="••••••••" type="password"/>
-</div>
-</div>
-</div>
-<div class="flex items-start gap-3 py-2">
-<div class="flex h-5 items-center">
-<input class="h-4 w-4 rounded border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark text-primary focus:ring-primary/50 focus:ring-offset-0" id="terms" name="terms" type="checkbox"/>
-</div>
-<label class="text-sm font-normal leading-tight text-slate-600 dark:text-text-secondary" for="terms">
-                                Acepto los <a class="font-medium text-slate-900 dark:text-primary hover:underline" href="#">Términos de servicio</a> y la <a class="font-medium text-slate-900 dark:text-primary hover:underline" href="#">Política de privacidad</a>
-</label>
-</div>
-<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-primary hover:bg-emerald-400 text-[#122118] text-base font-bold leading-normal tracking-[0.015em] transition-all shadow-lg shadow-primary/20">
-<span class="truncate">Crear cuenta</span>
-</button>
-<div class="relative flex py-1 items-center">
-<div class="flex-grow border-t border-slate-200 dark:border-border-dark"></div>
-<span class="flex-shrink-0 mx-4 text-xs font-medium text-slate-400 dark:text-text-secondary uppercase">O regístrate con</span>
-<div class="flex-grow border-t border-slate-200 dark:border-border-dark"></div>
-</div>
-<button class="flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-lg h-12 px-4 bg-white dark:bg-transparent border border-slate-200 dark:border-border-dark hover:bg-slate-50 dark:hover:bg-surface-dark text-slate-700 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-all" type="button">
-<img alt="Google Logo" class="w-5 h-5" data-alt="Google G logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUNCjOll9QGsKycCKiEFt3jNF9MvUlgAqhC-sw62obrxv9uQGvV6arNUahhPN9LH2ms2H05R2nguyyBXBXudFbzscF6_SXvi4OmF0NY6fg66RmxpSs6OoRPDvBD7dKiM8qOyuVFm9SJINJMObatD6ilGXp9kD_ncsMc-XgbpUvmZhO2sOoPgd18ZeROlkUgMwvTJFNCxLAe-JxBts7wijhNTRqfulMEe623Mi_aTqtYLeiBQYBHBtUkCpPiOuDhlAK8NfEjczBt3E"/>
-<span class="truncate">Regístrate con Google</span>
-</button>
-    <!-- End Form -->
-</form>
-</div>
-<!-- Footer links -->
-<div class="mt-8 flex justify-center gap-6">
-<a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors" href="#">Centro de ayuda</a>
-<a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors" href="#">Privacidad</a>
-<a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors" href="#">Términos</a>
-</div>
-</div>
-</main>
-</div>
-</body></html>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen flex flex-col overflow-x-hidden selection:bg-primary selection:text-background-dark">
+    <div class="layout-container flex h-full grow flex-col">
+        <!-- Header: logo + auth action -->
+        <header
+            class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-[#264532] px-6 lg:px-10 py-3 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+            <div class="flex items-center gap-3 text-slate-900 dark:text-white cursor-pointer">
+                <div class="size-8 text-primary">
+                    <svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_6_319)">
+                            <path
+                                d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z"
+                                fill="currentColor"></path>
+                        </g>
+                        <defs>
+                            <clipPath id="clip0_6_319">
+                                <rect fill="white" height="48" width="48"></rect>
+                            </clipPath>
+                        </defs>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">StudentManager</h2>
+            </div>
+            <!-- Header: auth action (login link/button) -->
+            <div class="flex gap-2">
+                <span
+                    class="hidden sm:flex items-center text-sm font-medium text-slate-600 dark:text-text-secondary mr-2">¿Ya
+                    tienes una cuenta?</span>
+                <a class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-6 bg-slate-200 hover:bg-slate-300 dark:bg-[#264532] dark:hover:bg-[#2f553d] text-slate-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
+                    href="{{ url_for('front.login_page') }}">
+                    <span class="truncate">Iniciar Sesión</span>
+                </a>
+            </div>
+        </header>
+        <!-- Main content: registration -->
+        <main class="flex flex-1 justify-center py-10 px-4 sm:px-6">
+            <div class="layout-content-container flex flex-col max-w-[520px] w-full flex-1">
+                <div class="flex flex-col gap-2 p-4 text-center mb-4">
+                    <h1
+                        class="text-slate-900 dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em]">
+                        Crea tu cuenta</h1>
+                    <p class="text-slate-500 dark:text-text-secondary text-base font-normal leading-normal">Únete para
+                        gestionar tus clases y calificaciones fácilmente.</p>
+                </div>
+                <!-- Card: form container -->
+                <div
+                    class="bg-white dark:bg-surface-dark/50 rounded-xl border border-slate-200 dark:border-border-dark p-6 sm:p-8 shadow-sm">
+                    <!-- Form Section: register form and fields -->
+                    <form class="flex flex-col gap-5" id="register_form" action="{{ url_for('front.register_page') }}"
+                        method="post" onclick="setActionForm('login')">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Nombre
+                                completo</label>
+                            <div class="relative">
+                                <span
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
+                                    <span class="material-symbols-outlined text-[20px]">person</span>
+                                </span>
+                                <input name="username"
+                                    class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-4 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all"
+                                    placeholder="ej. Juan Pérez" type="text" />
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Correo
+                                electrónico</label>
+                            <div class="relative">
+                                <span
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
+                                    <span class="material-symbols-outlined text-[20px]">mail</span>
+                                </span>
+                                <input name="email"
+                                    class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-4 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all"
+                                    placeholder="ej. juan@estudiante.edu" type="email" />
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-5">
+                            <div class="flex flex-col gap-2 flex-1">
+                                <label
+                                    class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Contraseña</label>
+                                <div class="relative">
+                                    <span
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
+                                        <span class="material-symbols-outlined text-[20px]">lock</span>
+                                    </span>
+                                    <input name="password"
+                                        class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-10 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all"
+                                        placeholder="••••••••" type="password" />
+                                    <button
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary hover:text-slate-600 dark:hover:text-white"
+                                        type="button">
+                                        <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2 flex-1">
+                                <label
+                                    class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Confirmar</label>
+                                <div class="relative">
+                                    <span
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
+                                        <span class="material-symbols-outlined text-[20px]">lock_reset</span>
+                                    </span>
+                                    <input name="password_confirm"
+                                        class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-4 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all"
+                                        placeholder="••••••••" type="password" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 py-2">
+                            <div class="flex h-5 items-center">
+                                <input
+                                    class="h-4 w-4 rounded border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark text-primary focus:ring-primary/50 focus:ring-offset-0"
+                                    id="terms" name="terms" type="checkbox" />
+                            </div>
+                            <label class="text-sm font-normal leading-tight text-slate-600 dark:text-text-secondary"
+                                for="terms">
+                                Acepto los <a class="font-medium text-slate-900 dark:text-primary hover:underline"
+                                    href="#">Términos de servicio</a> y la <a
+                                    class="font-medium text-slate-900 dark:text-primary hover:underline"
+                                    href="#">Política de privacidad</a>
+                            </label>
+                        </div>
+                        <button
+                            class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-primary hover:bg-emerald-400 text-[#122118] text-base font-bold leading-normal tracking-[0.015em] transition-all shadow-lg shadow-primary/20">
+                            <span class="truncate">Crear cuenta</span>
+                        </button>
+                        <div class="relative flex py-1 items-center">
+                            <div class="flex-grow border-t border-slate-200 dark:border-border-dark"></div>
+                            <span
+                                class="flex-shrink-0 mx-4 text-xs font-medium text-slate-400 dark:text-text-secondary uppercase">O
+                                regístrate con</span>
+                            <div class="flex-grow border-t border-slate-200 dark:border-border-dark"></div>
+                        </div>
+                        <button
+                            class="flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-lg h-12 px-4 bg-white dark:bg-transparent border border-slate-200 dark:border-border-dark hover:bg-slate-50 dark:hover:bg-surface-dark text-slate-700 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-all"
+                            type="button">
+                            <img alt="Google Logo" class="w-5 h-5" data-alt="Google G logo"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUNCjOll9QGsKycCKiEFt3jNF9MvUlgAqhC-sw62obrxv9uQGvV6arNUahhPN9LH2ms2H05R2nguyyBXBXudFbzscF6_SXvi4OmF0NY6fg66RmxpSs6OoRPDvBD7dKiM8qOyuVFm9SJINJMObatD6ilGXp9kD_ncsMc-XgbpUvmZhO2sOoPgd18ZeROlkUgMwvTJFNCxLAe-JxBts7wijhNTRqfulMEe623Mi_aTqtYLeiBQYBHBtUkCpPiOuDhlAK8NfEjczBt3E" />
+                            <span class="truncate">Regístrate con Google</span>
+                        </button>
+                        <!-- End Form -->
+                    </form>
+                </div>
+                <!-- Footer links -->
+                <div class="mt-8 flex justify-center gap-6">
+                    <a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors"
+                        href="#">Centro de ayuda</a>
+                    <a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors"
+                        href="#">Privacidad</a>
+                    <a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors"
+                        href="#">Términos</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
