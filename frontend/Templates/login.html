@@ -176,7 +176,7 @@
                     });
                     const data = await res.json().catch(()=>({}));
                     if (res.ok) {
-                        window.location.href = "{{ url_for('front.predashboard') }}";
+                        window.location.href = "{{ url_for('front.dashboard') }}";
                     } else {
                         const msg = data.error || data.message || 'Credenciales inválidas';
                         errorBox.textContent = msg;

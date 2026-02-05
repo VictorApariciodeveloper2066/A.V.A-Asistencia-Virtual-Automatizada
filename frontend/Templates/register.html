@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>StudentManager - Registro</title>
+    <title>Página de Registro - A.V.A</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;display=swap"
         rel="stylesheet" />
@@ -65,7 +65,7 @@
                         </defs>
                     </svg>
                 </div>
-                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">StudentManager</h2>
+                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">A.V.A</h2>
             </div>
             <!-- Header: auth action (login link/button) -->
             <div class="flex gap-2">
@@ -231,7 +231,7 @@
                                 });
                                 const data = await res.json().catch(()=>({}));
                                 if (res.ok) {
-                                    window.location.href = "{{ url_for('front.predashboard') }}";
+                                    window.location.href = "{{ url_for('front.index') }}";
                                 } else {
                                     const msg = data.error || data.message || 'Error en el registro';
                                     errorBox.textContent = msg;

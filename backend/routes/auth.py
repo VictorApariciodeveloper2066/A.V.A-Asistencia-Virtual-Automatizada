@@ -1,11 +1,7 @@
-from flask import Blueprint, request, redirect, session, url_for, render_template
-from backend.models import User
-from backend.extensions import db
-
-auth_bp = Blueprint('auth', __name__)
 from flask import Blueprint, request, session, jsonify
 from backend.models import User
 from backend.extensions import db
+from sqlalchemy import or_
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -22,7 +18,8 @@ def login():
     if not username or not password:
         return jsonify({"error": "Username and password required"}), 400
 
-    user = User.query.filter_by(username=username).first()
+    # Allow users to login with either username or email
+    user = User.query.filter(or_(User.username == username, User.email == username)).first()
 
     if not user or not user.check_password(password):
         return jsonify({"error": "Invalid credentials"}), 401
