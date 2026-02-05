@@ -157,6 +157,11 @@
                                 {% if c.get('aula') %}
                                 <p class="text-[11px] text-gray-500 mt-1 flex items-center gap-1">Aula: {{ c.aula }}</p>
                                 {% endif %}
+                                {% if c.can_mark %}
+                                <div class="mt-2">
+                                    <button onclick="registrarAsistencia({{ c.id }}, this)" class="btn-asistencia px-3 py-1 text-sm rounded bg-primary text-white hover:opacity-90">Marcar Presente</button>
+                                </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                             {% else %}
@@ -179,7 +184,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Materias Inscritas</p>
-                            <p class="text-lg font-bold text-gray-900 dark:text-white">{{ user.courses.count() }}</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white">{{ course_count }}</p>
                         </div>
                     </div>
                     <div
@@ -190,7 +195,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Clases Asistidas</p>
-                            <p class="text-lg font-bold text-gray-900 dark:text-white">0 / 0</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white">{{ attended_count }} / {{ total_classes }}</p>
                         </div>
                     </div>
                     <div
@@ -212,3 +217,28 @@
 </body>
 
 </html>
+
+<script>
+function registrarAsistencia(courseId, btn){
+    if(btn) btn.disabled = true;
+    fetch('/auth/marcar_asistencia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course_id: courseId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("¡Asistencia confirmada!");
+            if(btn) btn.innerText = 'Registrado';
+        } else {
+            alert("Error: " + (data.error || 'Respuesta inesperada'));
+            if(btn) btn.disabled = false;
+        }
+    })
+    .catch(err => {
+        alert('Error de red');
+        if(btn) btn.disabled = false;
+    });
+}
+</script>

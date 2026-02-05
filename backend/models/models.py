@@ -17,7 +17,11 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
-
+    
+    # Relación para acceder a los cursos del usuario fácilmente
+    courses = db.relationship('Course', secondary='user_course', backref=db.backref('users', lazy='dynamic'))
+    # La tabla Asistencia ya está bien definida, la usaremos tal cual:
+    # id, user_id, course_id, date, time, state
 
 class Course(db.Model):
     __tablename__ = 'course'
