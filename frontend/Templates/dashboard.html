@@ -99,7 +99,7 @@
                     <span class="hidden lg:inline text-sm font-medium">Configuración</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-1"
-                    href="#">
+                    href="{{ url_for('auth.logout') }}">
                     <span class="material-symbols-outlined">logout</span>
                     <span class="hidden lg:inline text-sm font-medium">Cerrar Sesión</span>
                 </a>
@@ -159,7 +159,18 @@
                                 {% endif %}
                                 {% if c.can_mark %}
                                 <div class="mt-2">
-                                    <button onclick="registrarAsistencia({{ c.id }}, this)" class="btn-asistencia px-3 py-1 text-sm rounded bg-primary text-white hover:opacity-90">Marcar Presente</button>
+                                    {% if user.role == 'teacher' %}
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="generarCodigo({{ c.id }}, this)" class="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:opacity-90">Generar Código</button>
+                                        <a href="{{ url_for('front.ver_asistencia', course_id=c.id) }}" class="px-3 py-1 text-sm rounded bg-white/10 text-white hover:opacity-90 flex items-center gap-2"><span class="material-symbols-outlined">group</span> Control de Alumnos</a>
+                                    </div>
+                                    <div id="display-code-{{ c.id }}" class="mt-2 text-sm font-mono"></div>
+                                    {% elif user.role == 'student' %}
+                                    <div class="flex items-center gap-2">
+                                        <input id="code-{{ c.id }}" type="text" maxlength="6" placeholder="Código" class="px-2 py-1 border rounded text-sm" />
+                                        <button onclick="enviarAsistencia({{ c.id }}, this)" class="px-3 py-1 text-sm rounded bg-primary text-white hover:opacity-90">Validar</button>
+                                    </div>
+                                    {% endif %}
                                 </div>
                                 {% endif %}
                             </div>
@@ -210,6 +221,58 @@
                         </div>
                     </div>
                 </div>
+                
+                {% if user.role == 'teacher' %}
+                <div class="mt-6">
+                    <h3 class="text-lg font-bold mb-3">Panel del Profesor — Control Manual</h3>
+                    {% for course in courses %}
+                    <div class="p-4 mb-4 border rounded">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="font-semibold">{{ course.name }}</h4>
+                                <p class="text-sm text-gray-500">Aula: {{ course.aula }} — {{ course.start_time }} - {{ course.end_time }}</p>
+                            </div>
+                            <div>
+                                <button onclick="generarCodigo({{ course.id }})" class="px-3 py-1 bg-yellow-500 text-white rounded">Generar Código</button>
+                                <div id="code-display-{{ course.id }}" class="mt-2 text-sm font-mono"></div>
+                            </div>
+                        </div>
+
+                        {% if course.id in students_by_course %}
+                        <div class="attendance-panel mt-4">
+                            <h5 class="font-semibold mb-2">Lista de Alumnos (sesión activa)</h5>
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th class="p-2">Usuario</th>
+                                        <th class="p-2">Email</th>
+                                        <th class="p-2">Asistencia</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-{{ course.id }}">
+                                    {% for student in students_by_course[course.id] %}
+                                    <tr class="border-t">
+                                        <td class="p-2">{{ student.username }}</td>
+                                        <td class="p-2">{{ student.email }}</td>
+                                        <td class="p-2">
+                                            <label class="inline-flex items-center gap-2">
+                                                <input type="checkbox" class="check-attendance" data-user-id="{{ student.id }}" checked>
+                                                <span class="text-sm">Presente</span>
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <div class="mt-3">
+                                <button onclick="guardarAsistenciaManual({{ course.id }})" class="px-3 py-1 bg-green-600 text-white rounded">Guardar Lista</button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </main>
     </div>
@@ -240,5 +303,55 @@ function registrarAsistencia(courseId, btn){
         alert('Error de red');
         if(btn) btn.disabled = false;
     });
+}
+
+function generarCodigo(courseId, btn){
+    if(btn) btn.disabled = true;
+    fetch(`/auth/generate_code/${courseId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if(data.code){
+            const el = document.getElementById('display-code-' + courseId);
+            if(el) el.innerText = 'Código: ' + data.code;
+        } else {
+            alert('Error al generar código: ' + (data.error || ''))
+            if(btn) btn.disabled = false;
+        }
+    }).catch(()=>{ if(btn) btn.disabled = false; alert('Error de red') });
+}
+
+function enviarAsistencia(courseId, btn){
+    const input = document.getElementById('code-' + courseId);
+    const code = input ? input.value.trim() : '';
+    if(!code){ alert('Ingresa el código'); return }
+    if(btn) btn.disabled = true;
+    fetch('/auth/submit_attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course_id: courseId, code: code })
+    }).then(r => r.json())
+    .then(data => {
+        if(data.message){ alert('Asistencia registrada'); if(btn) btn.innerText='Registrado'; }
+        else { alert('Error: ' + (data.error || '')); if(btn) btn.disabled=false; }
+    }).catch(()=>{ alert('Error de red'); if(btn) btn.disabled=false; });
+}
+
+function guardarAsistenciaManual(courseId){
+    const rows = document.querySelectorAll(`#table-${courseId} tr`);
+    const attendance = [];
+    rows.forEach(row => {
+        const check = row.querySelector('.check-attendance');
+        if(!check) return;
+        attendance.push({ user_id: check.getAttribute('data-user-id'), state: check.checked ? 'Presente' : 'Ausente' });
+    });
+
+    fetch('/auth/bulk_attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course_id: courseId, attendance: attendance })
+    })
+    .then(r => r.json())
+    .then(data => { if(data.message) alert(data.message); else alert('Error: ' + (data.error || '')) })
+    .catch(()=> alert('Error de red'));
 }
 </script>

@@ -59,6 +59,32 @@ def dashboard():
         item['can_mark'] = can_mark
         slots_by_day.setdefault(c.dia, []).append(item)
 
+    # If user is a teacher, build students_by_course for active classes
+    students_by_course = {}
+    try:
+        if user.role == 'teacher':
+            current_day = now.weekday() + 1
+            for c in courses:
+                # check active session
+                is_active = False
+                try:
+                    if isinstance(c.dia, int):
+                        if 1 <= c.dia <= 7:
+                            day_matches = (current_day == c.dia)
+                        else:
+                            day_matches = (now.weekday() == c.dia)
+                    else:
+                        day_matches = False
+                    is_active = day_matches and (c.start_time <= current_time <= c.end_time)
+                except Exception:
+                    is_active = False
+
+                if is_active:
+                    students = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == c.id, User.role != 'teacher').all()
+                    students_by_course[c.id] = students
+    except Exception:
+        students_by_course = {}
+
     # Build values expected by the template:
     # - days_names: 1-based mapping for weekdays used in the template (1..5)
     # - week_dates: mapping day index -> date string for current week
@@ -92,7 +118,31 @@ def dashboard():
     # Provide course count for the template (avoid calling InstrumentedList.count())
     course_count = len(courses)
 
-    return render_template('dashboard.html', user=user, username=session['username'], schedule=slots_by_day, days_names=days_names, week_dates=week_dates, today_index=today_index, today=today, course_count=course_count, attended_count=attended_count, total_classes=total_classes)
+    return render_template('dashboard.html', user=user, username=session['username'], schedule=slots_by_day, days_names=days_names, week_dates=week_dates, today_index=today_index, today=today, course_count=course_count, attended_count=attended_count, total_classes=total_classes, courses=courses, students_by_course=students_by_course)
+
+
+@front_bp.route('/asistencia/<int:course_id>')
+def ver_asistencia(course_id):
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    profesor = User.query.filter_by(username=session['username']).first()
+    if not profesor or profesor.role != 'teacher':
+        return redirect(url_for('front.index'))
+
+    course = Course.query.get_or_404(course_id)
+
+    # verify class is active (optional: restrict access to class time)
+    now = datetime.now()
+    try:
+        current_day = now.weekday() + 1
+        is_active = (isinstance(course.dia, int) and ((1 <= course.dia <= 7 and course.dia == current_day) or (0 <= course.dia <= 6 and course.dia == now.weekday())) and course.start_time <= now.time() <= course.end_time)
+    except Exception:
+        is_active = False
+
+    # get enrolled students (role == student)
+    alumnos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == course_id, User.role == 'student').all()
+
+    return render_template('Asistencia.html', alumnos=alumnos, course=course, profesor=profesor, now=now, is_active=is_active)
 
 @front_bp.route('/login')
 def login_page():

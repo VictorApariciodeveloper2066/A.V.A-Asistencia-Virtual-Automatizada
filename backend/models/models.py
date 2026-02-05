@@ -32,6 +32,9 @@ class Course(db.Model):
     dia = db.Column(db.Integer, nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
+    # Dynamic session code for attendance (set by teacher)
+    session_code = db.Column(db.String(10), nullable=True)
+    session_expires = db.Column(db.DateTime, nullable=True)
 
 
 class User_course(db.Model):
