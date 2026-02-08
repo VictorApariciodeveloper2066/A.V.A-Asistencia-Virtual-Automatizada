@@ -155,37 +155,34 @@
                             </thead>
                             <tbody class="divide-y divide-white/5">
                                 {% for alumno in alumnos %}
-                                <tr class="hover:bg-white/[0.02] transition-colors group">
+                                <tr class="hover:bg-white/[0.02] transition-colors group" data-user-id="{{ alumno.id }}">
                                     <td class="py-4 px-6">
-                                        <input class="custom-checkbox alumno-check" type="checkbox" data-user-id="{{ alumno.id }}" checked />
+                                        <input class="custom-checkbox alumno-check" type="checkbox" data-user-id="{{ alumno.id }}" {% if alumno.estado_actual == 'Presente' %}checked{% endif %} onchange="actualizarBotonesUI(this)" />
                                     </td>
                                     <td class="py-4 px-6">
                                         <div class="flex items-center gap-3">
-                                            <div class="avatar-initial">{{ (alumno.primer_nombre[0] if alumno.primer_nombre else (alumno.username[0] if alumno.username else 'U')) }}</div>
+                                            <div class="avatar-initial">{{ alumno.inicial }}</div>
                                             <div>
-                                                <p class="font-medium text-white">{{ (alumno.primer_apellido or '') }}, {{ (alumno.primer_nombre or '') }}</p>
-                                                <p class="text-xs text-gray-500">ID: {{ alumno.ci or 'S/N' }}</p>
+                                                <p class="font-medium text-white">{{ alumno.nombre_completo }}</p>
+                                                <p class="text-xs text-gray-500">ID: {{ alumno.cedula }}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="py-4 px-6">
-                                        <div class="flex justify-center gap-6">
-                                            <button class="flex flex-col items-center gap-1 group/btn" title="Presente">
+                                        <div class="flex justify-center gap-6 status-buttons">
+                                            <button type="button" onclick="setEstado(this, 'Presente')" class="btn-presente flex flex-col items-center gap-1 transition-all {% if alumno.estado_actual != 'Presente' %}opacity-20{% endif %}">
                                                 <span class="material-symbols-outlined fill text-primary text-[28px]">check_circle</span>
                                                 <span class="text-[10px] font-bold text-primary uppercase">Presente</span>
                                             </button>
-                                            <button class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity" title="Justificado">
-                                                <span class="material-symbols-outlined text-yellow-500 text-[28px]">error</span>
-                                                <span class="text-[10px] font-bold text-yellow-500 uppercase">Justificado</span>
-                                            </button>
-                                            <button class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity" title="Inasistente">
+                                            
+                                            <button type="button" onclick="setEstado(this, 'Ausente')" class="btn-ausente flex flex-col items-center gap-1 transition-all {% if alumno.estado_actual != 'Ausente' %}opacity-20{% endif %}">
                                                 <span class="material-symbols-outlined text-red-500 text-[28px]">cancel</span>
                                                 <span class="text-[10px] font-bold text-red-500 uppercase">Inasistente</span>
                                             </button>
                                         </div>
                                     </td>
                                     <td class="py-4 px-6 text-right">
-                                        <button class="p-2 text-gray-500 hover:text-white"><span class="material-symbols-outlined">more_vert</span></button>
+                                        <span class="badge-status text-[10px] px-2 py-1 rounded bg-white/10">{{ alumno.estado_actual }}</span>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -211,6 +208,7 @@
     <script>
     document.getElementById('select-all')?.addEventListener('change', function(e){
         document.querySelectorAll('.alumno-check').forEach(cb => cb.checked = e.target.checked);
+        document.querySelectorAll('.alumno-check').forEach(cb => actualizarBotonesUI(cb));
     });
 
     function guardarAsistenciaManual(courseId){
@@ -219,6 +217,57 @@
         checks.forEach(c => { attendance.push({ user_id: c.getAttribute('data-user-id'), state: c.checked ? 'Presente' : 'Ausente' }) });
         fetch('/auth/bulk_attendance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ course_id: courseId, attendance: attendance }) }).then(r=>r.json()).then(d=>{ if(d.message) alert(d.message); else alert('Error: '+(d.error||'')) }).catch(()=>alert('Error de red'));
     }
+
+    function setEstado(el, nuevoEstado){
+        const row = el.closest('tr');
+        const checkbox = row.querySelector('.alumno-check');
+        const btnPresente = row.querySelector('.btn-presente');
+        const btnAusente = row.querySelector('.btn-ausente');
+        const badge = row.querySelector('.badge-status');
+
+        // Update checkbox state
+        if(checkbox) checkbox.checked = (nuevoEstado === 'Presente');
+
+        // Update UI classes
+        if(btnPresente && btnAusente){
+            if(nuevoEstado === 'Presente'){
+                btnPresente.classList.remove('opacity-20');
+                btnAusente.classList.add('opacity-20');
+            } else {
+                btnPresente.classList.add('opacity-20');
+                btnAusente.classList.remove('opacity-20');
+            }
+        }
+
+        if(badge) badge.innerText = nuevoEstado;
+        actualizarContadores();
+    }
+
+    function actualizarBotonesUI(checkbox){
+        const estado = checkbox.checked ? 'Presente' : 'Ausente';
+        // find a button element to delegate
+        const row = checkbox.closest('tr');
+        if(!row) return;
+        const el = row.querySelector('.btn-presente') || checkbox;
+        setEstado(el, estado);
+    }
+
+    function actualizarContadores(){
+        const total = document.querySelectorAll('.alumno-check').length;
+        const presentes = document.querySelectorAll('.alumno-check:checked').length;
+        // Find counters in the page; the template uses some stat cards — try to update the likely nodes
+        const counters = document.querySelectorAll('.text-xl.font-bold.text-white');
+        if(counters && counters.length >= 3){
+            counters[0].innerText = presentes;
+            counters[2].innerText = total - presentes;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+        // initialize UI based on checkboxes
+        document.querySelectorAll('.alumno-check').forEach(cb => actualizarBotonesUI(cb));
+        actualizarContadores();
+    });
     </script>
 
 </body>

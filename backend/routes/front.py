@@ -140,9 +140,34 @@ def ver_asistencia(course_id):
         is_active = False
 
     # get enrolled students (role == student)
-    alumnos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == course_id, User.role == 'student').all()
+    alumnos_inscritos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == course_id, User.role == 'student').all()
 
-    return render_template('Asistencia.html', alumnos=alumnos, course=course, profesor=profesor, now=now, is_active=is_active)
+    # Get today's attendance for this course and map by user_id
+    today = date.today()
+    asistencias_hoy = Asistencia.query.filter_by(course_id=course_id, date=today).all()
+    mapa_asistencia = {a.user_id: a.state for a in asistencias_hoy}
+
+    # Build a simple list/dict for the template so the template doesn't need to access model attrs directly
+    lista_final = []
+    for alumno in alumnos_inscritos:
+        primer_nombre = getattr(alumno, 'primer_nombre', None) or None
+        primer_apellido = getattr(alumno, 'primer_apellido', None) or None
+        ci = getattr(alumno, 'ci', None) or getattr(alumno, 'cedula', None) or None
+        nombre_completo = f"{primer_apellido or ''}, {primer_nombre or alumno.username or ''}".strip().strip(',')
+        inicial = (primer_nombre[0] if primer_nombre else (alumno.username[0] if getattr(alumno, 'username', None) else 'U')).upper()
+        lista_final.append({
+            'id': alumno.id,
+            'nombre_completo': nombre_completo,
+            'cedula': ci or 'S/N',
+            'estado_actual': mapa_asistencia.get(alumno.id, 'Ausente'),
+            'inicial': inicial,
+            # expose some raw fields in case template needs them
+            'primer_nombre': primer_nombre,
+            'primer_apellido': primer_apellido,
+            'username': getattr(alumno, 'username', None)
+        })
+
+    return render_template('Asistencia.html', alumnos=lista_final, course=course, profesor=profesor, now=now, is_active=is_active)
 
 @front_bp.route('/login')
 def login_page():

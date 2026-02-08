@@ -78,16 +78,6 @@
                 </a>
                 <a class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
                     href="#">
-                    <span class="material-symbols-outlined">school</span>
-                    <span class="hidden lg:inline text-sm font-medium">Mis Materias</span>
-                </a>
-                <a class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-                    href="#">
-                    <span class="material-symbols-outlined">assignment</span>
-                    <span class="hidden lg:inline text-sm font-medium">Calificaciones</span>
-                </a>
-                <a class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-                    href="#">
                     <span class="material-symbols-outlined">history</span>
                     <span class="hidden lg:inline text-sm font-medium">Historial</span>
                 </a>
@@ -209,17 +199,7 @@
                             <p class="text-lg font-bold text-gray-900 dark:text-white">{{ attended_count }} / {{ total_classes }}</p>
                         </div>
                     </div>
-                    <div
-                        class="flex items-center gap-4 bg-white dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                        <div
-                            class="size-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                            <span class="material-symbols-outlined">event_available</span>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Próxima Evaluación</p>
-                            <p class="text-sm font-bold text-gray-900 dark:text-white">No programada</p>
-                        </div>
-                    </div>
+                    
                 </div>
                 
                 {% if user.role == 'teacher' %}
