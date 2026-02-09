@@ -78,9 +78,19 @@
                         <a href="{{ url_for('front.ver_historial', course_id=historial.course_id) }}" class="text-gray-400 hover:text-white">
                             <span class="material-symbols-outlined">arrow_back</span>
                         </a>
-                        <div>
+                        <div class="flex-1">
                             <h1 class="text-3xl font-bold text-white">Detalle de Sesión</h1>
                             <p class="text-gray-400 text-sm">{{ historial.curso.name }} - {{ historial.fecha.strftime('%d %b, %Y') }} {{ historial.hora.strftime('%I:%M %p') }}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <a href="{{ url_for('front.descargar_pdf', historial_id=historial.id) }}" class="flex items-center gap-2 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg transition-all font-semibold">
+                                <span class="material-symbols-outlined text-xl">picture_as_pdf</span>
+                                PDF
+                            </a>
+                            <a href="{{ url_for('front.descargar_excel', historial_id=historial.id) }}" class="flex items-center gap-2 bg-neon-green/10 text-neon-green border border-neon-green/20 hover:bg-neon-green hover:text-forest-deep px-4 py-2 rounded-lg transition-all font-semibold">
+                                <span class="material-symbols-outlined text-xl">description</span>
+                                Excel
+                            </a>
                         </div>
                     </div>
                     <div class="bg-forest-card rounded-xl p-4 border border-white/10">

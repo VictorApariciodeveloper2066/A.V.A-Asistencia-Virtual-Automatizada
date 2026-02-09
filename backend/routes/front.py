@@ -264,6 +264,168 @@ def ver_historial_detalle(historial_id):
     
     return render_template('historial_detalle.html', historial=historial, presentes=presentes, justificados=justificados, ausentes=ausentes, profesor=profesor)
 
+@front_bp.route('/descargar_pdf/<int:historial_id>')
+def descargar_pdf(historial_id):
+    from flask import make_response
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.units import inch
+    from io import BytesIO
+    
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    profesor = User.query.filter_by(username=session['username']).first()
+    if not profesor or profesor.role != 'teacher':
+        return redirect(url_for('front.index'))
+
+    historial = HistorialAsistencia.query.get_or_404(historial_id)
+    detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
+    
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Título
+    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#39E079'), spaceAfter=30)
+    elements.append(Paragraph(f"Lista de Asistencia - {historial.curso.name}", title_style))
+    
+    # Información del curso
+    info_data = [
+        ['Materia:', historial.curso.name],
+        ['Carrera:', 'Ing. en Sistemas'],
+        ['Profesor:', f"{profesor.primer_nombre or ''} {profesor.primer_apellido or ''}".strip() or profesor.username],
+        ['Horario:', f"{historial.curso.start_time.strftime('%H:%M')} - {historial.curso.end_time.strftime('%H:%M')}"],
+        ['Fecha:', historial.fecha.strftime('%d/%m/%Y')],
+        ['Código de Sesión:', historial.codigo_sesion]
+    ]
+    info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+    info_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#122017')),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.white),
+        ('TEXTCOLOR', (1, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.grey)
+    ]))
+    elements.append(info_table)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Alumnos Presentes
+    presentes = [d for d in detalles if d.estado == 'Presente']
+    if presentes:
+        elements.append(Paragraph(f"<b>Alumnos Presentes ({len(presentes)})</b>", styles['Heading2']))
+        presente_data = [['#', 'Nombre Completo', 'Cédula']]
+        for idx, detalle in enumerate(presentes, 1):
+            alumno = User.query.get(detalle.user_id)
+            if alumno:
+                nombre = f"{alumno.primer_nombre or ''} {alumno.primer_apellido or ''}".strip() or alumno.username
+                presente_data.append([str(idx), nombre, alumno.ci or 'S/N'])
+        
+        presente_table = Table(presente_data, colWidths=[0.5*inch, 3.5*inch, 2*inch])
+        presente_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#39E079')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')])
+        ]))
+        elements.append(presente_table)
+        elements.append(Spacer(1, 0.3*inch))
+    
+    # Alumnos Justificados
+    justificados = [d for d in detalles if d.estado == 'Justificado']
+    if justificados:
+        elements.append(Paragraph(f"<b>Alumnos Justificados ({len(justificados)})</b>", styles['Heading2']))
+        justificado_data = [['#', 'Nombre Completo', 'Cédula']]
+        for idx, detalle in enumerate(justificados, 1):
+            alumno = User.query.get(detalle.user_id)
+            if alumno:
+                nombre = f"{alumno.primer_nombre or ''} {alumno.primer_apellido or ''}".strip() or alumno.username
+                justificado_data.append([str(idx), nombre, alumno.ci or 'S/N'])
+        
+        justificado_table = Table(justificado_data, colWidths=[0.5*inch, 3.5*inch, 2*inch])
+        justificado_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#FFA500')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')])
+        ]))
+        elements.append(justificado_table)
+    
+    doc.build(elements)
+    buffer.seek(0)
+    
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=asistencia_{historial.codigo_sesion}.pdf'
+    return response
+
+@front_bp.route('/descargar_excel/<int:historial_id>')
+def descargar_excel(historial_id):
+    from flask import make_response
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from io import BytesIO
+    
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    profesor = User.query.filter_by(username=session['username']).first()
+    if not profesor or profesor.role != 'teacher':
+        return redirect(url_for('front.index'))
+
+    historial = HistorialAsistencia.query.get_or_404(historial_id)
+    detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
+    
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Asistencia"
+    
+    # Encabezados
+    headers = ['#', 'Nombre Completo', 'Cédula', 'Estado']
+    ws.append(headers)
+    
+    # Estilo de encabezado
+    header_fill = PatternFill(start_color='39E079', end_color='39E079', fill_type='solid')
+    header_font = Font(bold=True, color='000000')
+    for cell in ws[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+    
+    # Datos
+    for idx, detalle in enumerate(detalles, 1):
+        alumno = User.query.get(detalle.user_id)
+        if alumno:
+            nombre = f"{alumno.primer_nombre or ''} {alumno.primer_apellido or ''}".strip() or alumno.username
+            ws.append([idx, nombre, alumno.ci or 'S/N', detalle.estado])
+    
+    # Ajustar anchos de columna
+    ws.column_dimensions['A'].width = 5
+    ws.column_dimensions['B'].width = 35
+    ws.column_dimensions['C'].width = 15
+    ws.column_dimensions['D'].width = 15
+    
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.headers['Content-Disposition'] = f'attachment; filename=asistencia_{historial.codigo_sesion}.xlsx'
+    return response
+
 @front_bp.route('/login')
 def login_page():
     return render_template('login.html')
