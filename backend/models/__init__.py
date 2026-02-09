@@ -1,1 +1,1 @@
-from .models import User, Course, User_course, Asistencia
+from .models import User, Course, User_course, Asistencia, Justificativo

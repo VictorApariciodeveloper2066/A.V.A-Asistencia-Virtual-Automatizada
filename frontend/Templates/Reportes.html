@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Gestión de Justificaciones - {{ course.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#39E079",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#0A1A11",
+                        "forest": "#122017"
+                    },
+                    fontFamily: {
+                        display: "Lexend",
+                        sans: "Lexend"
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+<body class="bg-background-dark font-sans text-gray-200">
+    <div class="flex min-h-screen">
+        <main class="flex-1 p-4 lg:p-8">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h1 class="text-3xl font-black text-white tracking-tight italic uppercase">
+                            Justificativos <span class="text-primary">Pendientes</span>
+                        </h1>
+                        <p class="text-gray-500 text-sm font-medium">{{ course.name }} | Revisión de inasistencias</p>
+                    </div>
+                    <a href="{{ url_for('front.ver_asistencia', course_id=course.id) }}" class="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all text-sm font-bold">
+                        <span class="material-symbols-outlined text-sm">arrow_back</span>
+                        Volver a Asistencia
+                    </a>
+                </div>
+
+                <div class="bg-forest rounded-3xl border border-white/5 overflow-hidden shadow-2xl flex flex-col min-h-[500px]">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/5 bg-white/[0.02]">
+                                    <th class="py-4 px-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Alumno</th>
+                                    <th class="py-4 px-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Fecha Falta</th>
+                                    <th class="py-4 px-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Motivo</th>
+                                    <th class="py-4 px-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Evidencia</th>
+                                    <th class="py-4 px-6 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/[0.05]">
+                                {% for j in justificativos %}
+                                <tr id="row-{{ j.id }}" class="hover:bg-white/[0.02] transition-colors group">
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                                                {{ j.usuario.primer_nombre[0] }}{{ j.usuario.primer_apellido[0] }}
+                                            </div>
+                                            <span class="text-sm font-bold text-white">{{ j.usuario.primer_nombre }} {{ j.usuario.primer_apellido }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <span class="text-xs font-mono text-gray-400">{{ j.fecha_clase }}</span>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <p class="text-xs text-gray-300 max-w-[200px] truncate" title="{{ j.motivo }}">{{ j.motivo }}</p>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <a href="/static/uploads/{{ j.archivo_nombre }}" target="_blank" class="flex items-center gap-2 text-primary hover:underline text-xs font-bold">
+                                            <span class="material-symbols-outlined text-sm">attachment</span>
+                                            Ver Archivo
+                                        </a>
+                                    </td>
+                                    <td class="py-4 px-6 text-right">
+                                        <div class="flex justify-end gap-2">
+                                            <button onclick="resolverJustificativo({{ j.id }}, 'Aceptado')" class="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-black hover:bg-primary hover:text-black transition-all uppercase tracking-wide">
+                                                Aceptar
+                                            </button>
+                                            <button onclick="resolverJustificativo({{ j.id }}, 'Rechazado')" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 text-[10px] font-black hover:bg-red-500 hover:text-white transition-all uppercase tracking-wide">
+                                                Rechazar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="py-20 text-center text-gray-500 italic">No hay justificativos pendientes de revisión.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="p-4 mt-auto bg-white/5 border-t border-white/5 flex items-center justify-between">
+                        <p class="text-xs text-gray-500">Mostrando <span class="text-white font-bold">{{ justificativos|length }}</span> solicitudes</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    function resolverJustificativo(id, estado) {
+        if(!confirm(`¿Deseas marcar este justificativo como ${estado}?`)) return;
+
+        fetch(`/auth/resolver_justificativo/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: estado })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.message) {
+                const row = document.getElementById(`row-${id}`);
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                setTimeout(() => row.remove(), 300);
+                alert(data.message);
+            } else {
+                alert("Error: " + (data.error || ''));
+            }
+        })
+        .catch(() => alert("Error de red"));
+    }
+    </script>
+</body>
+</html>

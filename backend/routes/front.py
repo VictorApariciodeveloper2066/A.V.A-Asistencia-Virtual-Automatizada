@@ -147,6 +147,10 @@ def ver_asistencia(course_id):
     asistencias_hoy = Asistencia.query.filter_by(course_id=course_id, date=today).all()
     mapa_asistencia = {a.user_id: a.state for a in asistencias_hoy}
 
+    # Get pending justificativos for this course
+    from backend.models import Justificativo
+    justificativos_pendientes = Justificativo.query.filter_by(course_id=course_id, estado='Pendiente').all()
+
     # Build a simple list/dict for the template so the template doesn't need to access model attrs directly
     lista_final = []
     for alumno in alumnos_inscritos:
@@ -167,7 +171,22 @@ def ver_asistencia(course_id):
             'username': getattr(alumno, 'username', None)
         })
 
-    return render_template('Asistencia.html', alumnos=lista_final, course=course, profesor=profesor, now=now, is_active=is_active)
+    return render_template('Asistencia.html', alumnos=lista_final, course=course, profesor=profesor, now=now, is_active=is_active, justificativos_pendientes=justificativos_pendientes)
+
+
+@front_bp.route('/justificativos/<int:course_id>')
+def ver_justificativos(course_id):
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    profesor = User.query.filter_by(username=session['username']).first()
+    if not profesor or profesor.role != 'teacher':
+        return redirect(url_for('front.index'))
+
+    course = Course.query.get_or_404(course_id)
+    from backend.models import Justificativo
+    justificativos = Justificativo.query.filter_by(course_id=course_id, estado='Pendiente').all()
+    
+    return render_template('Reportes.html', course=course, justificativos=justificativos)
 
 @front_bp.route('/login')
 def login_page():

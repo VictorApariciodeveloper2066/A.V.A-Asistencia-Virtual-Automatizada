@@ -13,6 +13,7 @@ class User(db.Model):
     career = db.Column(db.String(150), nullable=True)
     primer_nombre = db.Column(db.String(100), nullable=True)
     primer_apellido = db.Column(db.String(100), nullable=True)
+    ci = db.Column(db.String(20), nullable=True)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -56,3 +57,18 @@ class Asistencia(db.Model):
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.Time, nullable=False)
     state = db.Column(db.String(50), nullable=False)
+
+
+class Justificativo(db.Model):
+    __tablename__ = 'justificativo'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    fecha_clase = db.Column(db.String(20), nullable=False)
+    motivo = db.Column(db.Text, nullable=False)
+    archivo_nombre = db.Column(db.String(100))
+    estado = db.Column(db.String(20), default='Pendiente')
+
+    usuario = db.relationship('User', backref='justificativos')
+    curso = db.relationship('Course', backref='justificativos')

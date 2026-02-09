@@ -1,5 +1,5 @@
 from flask import Blueprint, request, session, jsonify, redirect, url_for
-from backend.models import User, Course, Asistencia, User_course
+from backend.models import User, Course, Asistencia, User_course, Justificativo
 from backend.extensions import db
 from sqlalchemy import or_
 from datetime import datetime
@@ -9,6 +9,8 @@ import secrets, string
 from flask_mail import Message
 from backend.extensions import mail
 import traceback
+import os
+from werkzeug.utils import secure_filename
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -348,3 +350,89 @@ def bulk_attendance():
 
     db.session.commit()
     return jsonify({"message": "Asistencia actualizada correctamente"}), 200
+
+
+@auth_bp.route('/subir_justificativo', methods=['POST'])
+def subir_justificativo():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    
+    user = User.query.filter_by(username=session['username']).first()
+    course_id = request.form.get('course_id')
+    fecha_clase = request.form.get('fecha_clase')
+    motivo = request.form.get('motivo')
+    archivo = request.files.get('archivo')
+    
+    if not course_id or not motivo:
+        return jsonify({"error": "Datos incompletos"}), 400
+    
+    archivo_nombre = None
+    if archivo:
+        filename = secure_filename(archivo.filename)
+        upload_folder = os.path.join(current_app.root_path, '..', 'uploads')
+        os.makedirs(upload_folder, exist_ok=True)
+        archivo_nombre = f"{user.id}_{datetime.now().timestamp()}_{filename}"
+        archivo.save(os.path.join(upload_folder, archivo_nombre))
+    
+    justificativo = Justificativo(
+        user_id=user.id,
+        course_id=course_id,
+        fecha_clase=fecha_clase or datetime.now().strftime('%Y-%m-%d'),
+        motivo=motivo,
+        archivo_nombre=archivo_nombre,
+        estado='Pendiente'
+    )
+    db.session.add(justificativo)
+    db.session.commit()
+    
+    return jsonify({"message": "Justificativo enviado correctamente"}), 201
+
+
+@auth_bp.route('/resolver_justificativo/<int:justificativo_id>', methods=['POST'])
+def resolver_justificativo(justificativo_id):
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    
+    user = User.query.filter_by(username=session['username']).first()
+    if not user or user.role != 'teacher':
+        return jsonify({"error": "Solo profesores pueden resolver justificativos"}), 403
+    
+    data = request.get_json() or {}
+    nuevo_estado = data.get('estado')
+    
+    if nuevo_estado not in ('Aceptado', 'Rechazado'):
+        return jsonify({"error": "Estado inválido"}), 400
+    
+    justificativo = Justificativo.query.get(justificativo_id)
+    if not justificativo:
+        return jsonify({"error": "Justificativo no encontrado"}), 404
+    
+    justificativo.estado = nuevo_estado
+    
+    if nuevo_estado == 'Aceptado':
+        from datetime import datetime
+        try:
+            fecha = datetime.strptime(justificativo.fecha_clase, '%Y-%m-%d').date()
+        except:
+            fecha = datetime.now().date()
+        
+        asistencia = Asistencia.query.filter_by(
+            user_id=justificativo.user_id,
+            course_id=justificativo.course_id,
+            date=fecha
+        ).first()
+        
+        if asistencia:
+            asistencia.state = 'Justificado'
+        else:
+            nueva_asistencia = Asistencia(
+                user_id=justificativo.user_id,
+                course_id=justificativo.course_id,
+                date=fecha,
+                time=datetime.now().time(),
+                state='Justificado'
+            )
+            db.session.add(nueva_asistencia)
+    
+    db.session.commit()
+    return jsonify({"message": f"Justificativo {nuevo_estado.lower()}"}), 200
