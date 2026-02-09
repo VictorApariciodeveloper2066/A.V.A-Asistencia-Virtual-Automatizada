@@ -355,7 +355,7 @@ def bulk_attendance():
 @auth_bp.route('/subir_justificativo', methods=['POST'])
 def subir_justificativo():
     if 'username' not in session:
-        return jsonify({"error": "No autorizado"}), 401
+        return redirect(url_for('front.login_page'))
     
     user = User.query.filter_by(username=session['username']).first()
     course_id = request.form.get('course_id')
@@ -364,14 +364,14 @@ def subir_justificativo():
     archivo = request.files.get('archivo')
     
     if not course_id or not motivo:
-        return jsonify({"error": "Datos incompletos"}), 400
+        return redirect(url_for('front.cargar_justificativo'))
     
     archivo_nombre = None
     if archivo:
         filename = secure_filename(archivo.filename)
-        upload_folder = os.path.join(current_app.root_path, '..', 'uploads')
+        upload_folder = os.path.join(current_app.root_path, 'frontend', 'static', 'uploads')
         os.makedirs(upload_folder, exist_ok=True)
-        archivo_nombre = f"{user.id}_{datetime.now().timestamp()}_{filename}"
+        archivo_nombre = f"{user.id}_{int(datetime.now().timestamp())}_{filename}"
         archivo.save(os.path.join(upload_folder, archivo_nombre))
     
     justificativo = Justificativo(
@@ -385,8 +385,15 @@ def subir_justificativo():
     db.session.add(justificativo)
     db.session.commit()
     
-    return jsonify({"message": "Justificativo enviado correctamente"}), 201
+    return redirect(url_for('front.dashboard'))
 
+
+@auth_bp.route('/serve_file/<filename>')
+def serve_file(filename):
+    from flask import send_from_directory, current_app
+    import os
+    upload_folder = os.path.join(current_app.root_path, 'frontend', 'static', 'uploads')
+    return send_from_directory(upload_folder, filename)
 
 @auth_bp.route('/resolver_justificativo/<int:justificativo_id>', methods=['POST'])
 def resolver_justificativo(justificativo_id):

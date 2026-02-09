@@ -169,7 +169,7 @@
                             <p class="text-xs text-gray-300 italic">"{{ j.motivo }}"</p>
                             
                             <div class="flex items-center gap-2 mt-2">
-                                <a href="/static/uploads/{{ j.archivo_nombre }}" target="_blank" class="flex-1 py-2 rounded-xl bg-white/5 text-white text-[11px] font-medium hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                                <a href="{{ url_for('front.ver_archivo', filename=j.archivo_nombre) }}" target="_blank" class="flex-1 py-2 rounded-xl bg-white/5 text-white text-[11px] font-medium hover:bg-white/10 transition-all flex items-center justify-center gap-2">
                                     <span class="material-symbols-outlined text-sm">visibility</span> Ver Documento
                                 </a>
                                 <button onclick="resolverJustificativo({{ j.id }}, {{ j.user_id }}, 'Aceptado')" class="p-2 rounded-xl bg-primary text-background-dark hover:brightness-110 transition-all">
@@ -348,13 +348,13 @@
                 if (nuevoEstado === 'Aceptado') {
                     const row = document.querySelector(`tr[data-user-id="${alumnoId}"]`);
                     if (row) {
-                        const badge = row.querySelector('.badge-status');
-                        if (badge) {
-                            badge.innerText = 'Justificado';
-                            badge.className = 'badge-status text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-400';
+                        const btnJustificado = row.querySelector('.btn-justificado');
+                        if (btnJustificado) {
+                            setEstado(btnJustificado, 'Justificado');
                         }
                     }
                 }
+                actualizarContadores();
                 alert(data.message);
             } else {
                 alert('Error: ' + (data.error || ''));

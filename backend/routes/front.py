@@ -188,6 +188,23 @@ def ver_justificativos(course_id):
     
     return render_template('Reportes.html', course=course, justificativos=justificativos)
 
+@front_bp.route('/cargar_justificativo')
+def cargar_justificativo():
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    user = User.query.filter_by(username=session['username']).first()
+    if not user or user.role != 'student':
+        return redirect(url_for('front.index'))
+    
+    courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == user.id).all()
+    return render_template('carga_justificativos.html', user=user, courses=courses)
+
+@front_bp.route('/ver_archivo/<filename>')
+def ver_archivo(filename):
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    return render_template('ver_archivo.html', filename=filename)
+
 @front_bp.route('/login')
 def login_page():
     return render_template('login.html')

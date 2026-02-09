@@ -76,7 +76,7 @@
                                         <p class="text-xs text-gray-300 max-w-[200px] truncate" title="{{ j.motivo }}">{{ j.motivo }}</p>
                                     </td>
                                     <td class="py-4 px-6">
-                                        <a href="/static/uploads/{{ j.archivo_nombre }}" target="_blank" class="flex items-center gap-2 text-primary hover:underline text-xs font-bold">
+                                        <a href="{{ url_for('front.ver_archivo', filename=j.archivo_nombre) }}" target="_blank" class="flex items-center gap-2 text-primary hover:underline text-xs font-bold">
                                             <span class="material-symbols-outlined text-sm">attachment</span>
                                             Ver Archivo
                                         </a>
