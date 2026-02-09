@@ -1,5 +1,5 @@
 from flask import Blueprint, request, session, jsonify, redirect, url_for
-from backend.models import User, Course, Asistencia, User_course, Justificativo
+from backend.models import User, Course, Asistencia, User_course, Justificativo, HistorialAsistencia, DetalleAsistencia
 from backend.extensions import db
 from sqlalchemy import or_
 from datetime import datetime
@@ -336,7 +336,7 @@ def bulk_attendance():
         try:
             uid = int(item.get('user_id'))
             state = item.get('state')
-            if state not in ('Presente', 'Ausente'):
+            if state not in ('Presente', 'Ausente', 'Justificado'):
                 continue
         except Exception:
             continue
@@ -443,3 +443,106 @@ def resolver_justificativo(justificativo_id):
     
     db.session.commit()
     return jsonify({"message": f"Justificativo {nuevo_estado.lower()}"}), 200
+
+
+@auth_bp.route('/guardar_historial', methods=['POST'])
+def guardar_historial():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user or user.role != 'teacher':
+        return jsonify({"error": "Solo profesores pueden guardar historial"}), 403
+
+    data = request.get_json() or {}
+    course_id = data.get('course_id')
+    
+    if not course_id:
+        return jsonify({"error": "course_id requerido"}), 400
+
+    course = Course.query.get(course_id)
+    if not course:
+        return jsonify({"error": "Curso no encontrado"}), 404
+
+    now = datetime.now()
+    today = now.date()
+    
+    # Verificar si ya existe un historial para este curso en este día
+    historial_existente = HistorialAsistencia.query.filter_by(course_id=course_id, fecha=today).first()
+    
+    # Obtener asistencias del día
+    asistencias_hoy = Asistencia.query.filter_by(course_id=course_id, date=today).all()
+    
+    # Obtener todos los alumnos inscritos
+    alumnos_inscritos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == course_id, User.role == 'student').all()
+    
+    # Mapear estados desde la tabla Asistencia
+    mapa_estados = {a.user_id: a.state for a in asistencias_hoy}
+    
+    # Contar estados
+    total_alumnos = len(alumnos_inscritos)
+    total_presentes = sum(1 for a in alumnos_inscritos if mapa_estados.get(a.id) == 'Presente')
+    total_justificados = sum(1 for a in alumnos_inscritos if mapa_estados.get(a.id) == 'Justificado')
+    total_ausentes = total_alumnos - total_presentes - total_justificados
+    
+    if historial_existente:
+        # Actualizar historial existente
+        historial_existente.hora = now.time()
+        historial_existente.total_alumnos = total_alumnos
+        historial_existente.total_presentes = total_presentes
+        historial_existente.total_justificados = total_justificados
+        historial_existente.total_ausentes = total_ausentes
+        
+        # Eliminar detalles antiguos
+        DetalleAsistencia.query.filter_by(historial_id=historial_existente.id).delete()
+        
+        # Crear nuevos detalles
+        for alumno in alumnos_inscritos:
+            estado = mapa_estados.get(alumno.id, 'Ausente')
+            detalle = DetalleAsistencia(
+                historial_id=historial_existente.id,
+                user_id=alumno.id,
+                estado=estado
+            )
+            db.session.add(detalle)
+        
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Historial actualizado exitosamente",
+            "codigo_sesion": historial_existente.codigo_sesion,
+            "historial_id": historial_existente.id
+        }), 200
+    else:
+        # Crear nuevo historial
+        codigo_sesion = f"{secrets.randbelow(10000):04d}-{secrets.randbelow(10000):04d}-{secrets.randbelow(10000):04d}"
+        
+        historial = HistorialAsistencia(
+            course_id=course_id,
+            fecha=today,
+            hora=now.time(),
+            codigo_sesion=codigo_sesion,
+            total_alumnos=total_alumnos,
+            total_presentes=total_presentes,
+            total_justificados=total_justificados,
+            total_ausentes=total_ausentes
+        )
+        db.session.add(historial)
+        db.session.flush()
+        
+        # Crear detalles para cada alumno
+        for alumno in alumnos_inscritos:
+            estado = mapa_estados.get(alumno.id, 'Ausente')
+            detalle = DetalleAsistencia(
+                historial_id=historial.id,
+                user_id=alumno.id,
+                estado=estado
+            )
+            db.session.add(detalle)
+        
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Historial guardado exitosamente",
+            "codigo_sesion": codigo_sesion,
+            "historial_id": historial.id
+        }), 201

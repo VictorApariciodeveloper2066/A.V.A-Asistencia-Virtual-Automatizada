@@ -72,3 +72,31 @@ class Justificativo(db.Model):
 
     usuario = db.relationship('User', backref='justificativos')
     curso = db.relationship('Course', backref='justificativos')
+
+
+class HistorialAsistencia(db.Model):
+    __tablename__ = 'historial_asistencia'
+
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    fecha = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.Time, nullable=False)
+    codigo_sesion = db.Column(db.String(20), nullable=False)
+    total_alumnos = db.Column(db.Integer, default=0)
+    total_presentes = db.Column(db.Integer, default=0)
+    total_justificados = db.Column(db.Integer, default=0)
+    total_ausentes = db.Column(db.Integer, default=0)
+
+    curso = db.relationship('Course', backref='historiales')
+    detalles = db.relationship('DetalleAsistencia', backref='historial', cascade='all, delete-orphan')
+
+
+class DetalleAsistencia(db.Model):
+    __tablename__ = 'detalle_asistencia'
+
+    id = db.Column(db.Integer, primary_key=True)
+    historial_id = db.Column(db.Integer, db.ForeignKey('historial_asistencia.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    estado = db.Column(db.String(20), nullable=False)
+
+    usuario = db.relationship('User', backref='detalles_asistencia')

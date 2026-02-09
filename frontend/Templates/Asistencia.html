@@ -80,6 +80,10 @@
                     <span class="absolute top-2 right-2 w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
                     {% endif %}
                 </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="{{ url_for('front.ver_historial', course_id=course.id) }}">
+                    <span class="material-symbols-outlined">history</span>
+                    <span class="hidden lg:inline text-sm font-medium">Historial</span>
+                </a>
             </nav>
             <div class="px-2 py-4 mt-auto border-t border-white/5">
                 <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="#">
@@ -189,6 +193,7 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-white/5 bg-white/5">
+                                    <th class="py-4 px-6 w-12 text-xs font-bold uppercase tracking-widest text-gray-400">#</th>
                                     <th class="py-4 px-6 w-16">
                                         <input id="select-all" class="custom-checkbox" type="checkbox" />
                                     </th>
@@ -200,6 +205,9 @@
                             <tbody class="divide-y divide-white/5">
                                 {% for alumno in alumnos %}
                                 <tr class="hover:bg-white/[0.02] transition-colors group" data-user-id="{{ alumno.id }}">
+                                    <td class="py-4 px-6">
+                                        <span class="text-gray-500 font-mono text-sm">{{ loop.index }}</span>
+                                    </td>
                                     <td class="py-4 px-6">
                                         <input class="custom-checkbox alumno-check" type="checkbox" data-user-id="{{ alumno.id }}" {% if alumno.estado_actual == 'Presente' %}checked{% endif %} onchange="actualizarBotonesUI(this)" />
                                     </td>
@@ -261,10 +269,47 @@
     });
 
     function guardarAsistenciaManual(courseId){
-        const checks = document.querySelectorAll('.alumno-check');
-        const attendance = [];
-        checks.forEach(c => { attendance.push({ user_id: c.getAttribute('data-user-id'), state: c.checked ? 'Presente' : 'Ausente' }) });
-        fetch('/auth/bulk_attendance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ course_id: courseId, attendance: attendance }) }).then(r=>r.json()).then(d=>{ if(d.message) alert(d.message); else alert('Error: '+(d.error||'')) }).catch(()=>alert('Error de red'));
+        if(!confirm('¿Deseas guardar esta asistencia en el historial?')) return;
+        
+        // Primero, recopilar todos los estados actuales de la UI
+        const rows = document.querySelectorAll('tr[data-user-id]');
+        const estadosActuales = [];
+        
+        rows.forEach(row => {
+            const userId = row.getAttribute('data-user-id');
+            const badge = row.querySelector('.badge-status');
+            const estado = badge ? badge.innerText.trim() : 'Ausente';
+            estadosActuales.push({ user_id: userId, state: estado });
+        });
+        
+        // Primero guardar los estados en la tabla Asistencia
+        fetch('/auth/bulk_attendance', { 
+            method: 'POST', 
+            headers: {'Content-Type':'application/json'}, 
+            body: JSON.stringify({ course_id: courseId, attendance: estadosActuales }) 
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.message) {
+                // Ahora sí guardar en el historial
+                return fetch('/auth/guardar_historial', { 
+                    method: 'POST', 
+                    headers: {'Content-Type':'application/json'}, 
+                    body: JSON.stringify({ course_id: courseId }) 
+                });
+            } else {
+                throw new Error(data.error || 'Error al guardar asistencia');
+            }
+        })
+        .then(r => r.json())
+        .then(d => { 
+            if(d.message) {
+                alert(`${d.message}\nCódigo de sesión: ${d.codigo_sesion}`);
+            } else {
+                alert('Error: '+(d.error||''));
+            }
+        })
+        .catch(err => alert('Error: ' + err.message));
     }
 
     function setEstado(el, nuevoEstado){

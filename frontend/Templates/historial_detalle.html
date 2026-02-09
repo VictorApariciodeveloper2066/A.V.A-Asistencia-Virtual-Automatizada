@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Detalle de Sesión - {{ historial.codigo_sesion }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#39E079",
+                        "forest-deep": "#0A1A12",
+                        "forest-card": "#12261B",
+                        "neon-green": "#39E079",
+                        "forest": "#122017"
+                    },
+                    fontFamily: {
+                        display: "Lexend"
+                    }
+                }
+            }
+        };
+    </script>
+    <style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0A1A12;
+        }
+    </style>
+</head>
+
+<body class="font-display text-gray-200">
+    <div class="flex min-h-screen">
+        <aside class="w-20 lg:w-64 flex-shrink-0 bg-forest border-r border-white/5 flex flex-col transition-all duration-300">
+            <div class="p-4 border-b border-white/5">
+                <div class="flex items-center gap-3 justify-center lg:justify-start">
+                    <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold border-2 border-primary/20">
+                        {{ profesor.primer_nombre[0] if profesor and profesor.primer_nombre else 'P' }}{{ profesor.primer_apellido[0] if profesor and profesor.primer_apellido else 'P' }}
+                    </div>
+                    <div class="hidden lg:flex flex-col">
+                        <h1 class="text-white text-base font-medium leading-normal">{{ profesor.primer_nombre if profesor and profesor.primer_nombre else 'Profesor' }} {{ profesor.primer_apellido if profesor and profesor.primer_apellido else '' }}</h1>
+                        <p class="text-primary text-xs font-normal leading-normal">{{ profesor.career if profesor and profesor.career else 'Facultad' }}</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 px-2 py-4 space-y-1">
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="{{ url_for('front.dashboard') }}">
+                    <span class="material-symbols-outlined">home</span>
+                    <span class="hidden lg:inline text-sm font-medium">Mi Horario</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="{{ url_for('front.ver_historial', course_id=historial.course_id) }}">
+                    <span class="material-symbols-outlined">history</span>
+                    <span class="hidden lg:inline text-sm font-medium">Historial</span>
+                </a>
+            </nav>
+            <div class="px-2 py-4 mt-auto border-t border-white/5">
+                <a class="flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg mt-1" href="{{ url_for('auth.logout') }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="hidden lg:inline text-sm font-medium">Cerrar Sesión</span>
+                </a>
+            </div>
+        </aside>
+        <main class="flex-1 overflow-y-auto">
+            <div class="max-w-7xl mx-auto p-4 lg:p-8">
+                <header class="mb-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <a href="{{ url_for('front.ver_historial', course_id=historial.course_id) }}" class="text-gray-400 hover:text-white">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                        </a>
+                        <div>
+                            <h1 class="text-3xl font-bold text-white">Detalle de Sesión</h1>
+                            <p class="text-gray-400 text-sm">{{ historial.curso.name }} - {{ historial.fecha.strftime('%d %b, %Y') }} {{ historial.hora.strftime('%I:%M %p') }}</p>
+                        </div>
+                    </div>
+                    <div class="bg-forest-card rounded-xl p-4 border border-white/10">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Código de Sesión</p>
+                                <p class="text-2xl font-mono text-neon-green font-bold">{{ historial.codigo_sesion }}</p>
+                            </div>
+                            <div class="grid grid-cols-4 gap-6">
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total</p>
+                                    <p class="text-2xl font-bold text-white">{{ historial.total_alumnos }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-blue-400 uppercase tracking-wider mb-1">Presentes</p>
+                                    <p class="text-2xl font-bold text-blue-400">{{ historial.total_presentes }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-yellow-400 uppercase tracking-wider mb-1">Justificados</p>
+                                    <p class="text-2xl font-bold text-yellow-400">{{ historial.total_justificados }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-red-400 uppercase tracking-wider mb-1">Ausentes</p>
+                                    <p class="text-2xl font-bold text-red-400">{{ historial.total_ausentes }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Presentes -->
+                    <div class="bg-forest-card rounded-2xl border border-blue-500/30 p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="material-symbols-outlined text-blue-400">check_circle</span>
+                            <h3 class="text-lg font-bold text-white">Presentes ({{ presentes|length }})</h3>
+                        </div>
+                        <div class="space-y-2 max-h-96 overflow-y-auto">
+                            {% for alumno in presentes %}
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                <div class="size-8 rounded-full bg-blue-400/20 flex items-center justify-center text-blue-400 font-bold text-xs">
+                                    {{ alumno.inicial }}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-white">{{ alumno.nombre }}</p>
+                                    <p class="text-[10px] text-gray-500 uppercase">{{ alumno.ci }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if not presentes %}
+                            <p class="text-gray-500 text-sm text-center py-4">No hay alumnos presentes</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Justificados -->
+                    <div class="bg-forest-card rounded-2xl border border-yellow-500/30 p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="material-symbols-outlined text-yellow-400">error</span>
+                            <h3 class="text-lg font-bold text-white">Justificados ({{ justificados|length }})</h3>
+                        </div>
+                        <div class="space-y-2 max-h-96 overflow-y-auto">
+                            {% for alumno in justificados %}
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                <div class="size-8 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 font-bold text-xs">
+                                    {{ alumno.inicial }}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-white">{{ alumno.nombre }}</p>
+                                    <p class="text-[10px] text-gray-500 uppercase">{{ alumno.ci }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if not justificados %}
+                            <p class="text-gray-500 text-sm text-center py-4">No hay alumnos justificados</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Ausentes -->
+                    <div class="bg-forest-card rounded-2xl border border-red-500/30 p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="material-symbols-outlined text-red-400">cancel</span>
+                            <h3 class="text-lg font-bold text-white">Ausentes ({{ ausentes|length }})</h3>
+                        </div>
+                        <div class="space-y-2 max-h-96 overflow-y-auto">
+                            {% for alumno in ausentes %}
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                <div class="size-8 rounded-full bg-red-400/20 flex items-center justify-center text-red-400 font-bold text-xs">
+                                    {{ alumno.inicial }}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-white">{{ alumno.nombre }}</p>
+                                    <p class="text-[10px] text-gray-500 uppercase">{{ alumno.ci }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if not ausentes %}
+                            <p class="text-gray-500 text-sm text-center py-4">No hay alumnos ausentes</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

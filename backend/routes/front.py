@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request
-from backend.models import User, Course, User_course, Asistencia
+from backend.models import User, Course, User_course, Asistencia, HistorialAsistencia, DetalleAsistencia
 from backend.extensions import db
 from datetime import date, timedelta, datetime
 
@@ -204,6 +204,65 @@ def ver_archivo(filename):
     if 'username' not in session:
         return redirect(url_for('front.login_page'))
     return render_template('ver_archivo.html', filename=filename)
+
+@front_bp.route('/historial/<int:course_id>')
+def ver_historial(course_id):
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    profesor = User.query.filter_by(username=session['username']).first()
+    if not profesor or profesor.role != 'teacher':
+        return redirect(url_for('front.index'))
+
+    course = Course.query.get_or_404(course_id)
+    historiales = HistorialAsistencia.query.filter_by(course_id=course_id).order_by(HistorialAsistencia.fecha.desc(), HistorialAsistencia.hora.desc()).all()
+    
+    return render_template('Historial.html', course=course, historiales=historiales, profesor=profesor)
+
+@front_bp.route('/historial')
+def historial_general():
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    profesor = User.query.filter_by(username=session['username']).first()
+    if not profesor or profesor.role != 'teacher':
+        return redirect(url_for('front.index'))
+
+    courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == profesor.id).all()
+    historiales = HistorialAsistencia.query.join(Course).filter(Course.id.in_([c.id for c in courses])).order_by(HistorialAsistencia.fecha.desc(), HistorialAsistencia.hora.desc()).all()
+    
+    return render_template('historial_general.html', historiales=historiales, profesor=profesor, courses=courses)
+
+@front_bp.route('/historial_detalle/<int:historial_id>')
+def ver_historial_detalle(historial_id):
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    profesor = User.query.filter_by(username=session['username']).first()
+    if not profesor or profesor.role != 'teacher':
+        return redirect(url_for('front.index'))
+
+    historial = HistorialAsistencia.query.get_or_404(historial_id)
+    detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
+    
+    # Agrupar por estado
+    presentes = []
+    justificados = []
+    ausentes = []
+    
+    for detalle in detalles:
+        alumno = User.query.get(detalle.user_id)
+        if alumno:
+            alumno_data = {
+                'nombre': f"{alumno.primer_nombre or ''} {alumno.primer_apellido or ''}".strip() or alumno.username,
+                'ci': alumno.ci or 'S/N',
+                'inicial': (alumno.primer_nombre[0] if alumno.primer_nombre else alumno.username[0]).upper()
+            }
+            if detalle.estado == 'Presente':
+                presentes.append(alumno_data)
+            elif detalle.estado == 'Justificado':
+                justificados.append(alumno_data)
+            else:
+                ausentes.append(alumno_data)
+    
+    return render_template('historial_detalle.html', historial=historial, presentes=presentes, justificados=justificados, ausentes=ausentes, profesor=profesor)
 
 @front_bp.route('/login')
 def login_page():

@@ -88,11 +88,13 @@
                     <span class="material-symbols-outlined fill">calendar_month</span>
                     <span class="hidden lg:inline text-sm font-medium">Mi Horario</span>
                 </a>
+                {% if user.role == 'teacher' %}
                 <a class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-                    href="#">
+                    href="{{ url_for('front.historial_general') }}">
                     <span class="material-symbols-outlined">history</span>
                     <span class="hidden lg:inline text-sm font-medium">Historial</span>
                 </a>
+                {% endif %}
             </nav>
             <div class="px-2 py-4 mt-auto border-t border-gray-200 dark:border-gray-800">
                 <a class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
@@ -176,6 +178,12 @@
                                            class="w-full py-2 px-4 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-[11px] font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
                                             <span class="material-symbols-outlined text-sm">group</span>
                                             Control de Alumnos
+                                        </a>
+                                        
+                                        <a href="{{ url_for('front.ver_historial', course_id=c.id) }}" 
+                                           class="w-full py-2 px-4 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-[11px] font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+                                            <span class="material-symbols-outlined text-sm">history</span>
+                                            Ver Historial
                                         </a>
 
                                         <div id="container-code-{{ c.id }}" class="hidden mt-2 p-3 rounded-xl bg-[#121C1F] border border-primary/30 animate-in fade-in zoom-in duration-300">
