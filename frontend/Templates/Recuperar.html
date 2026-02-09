@@ -64,12 +64,12 @@
                     instrucciones</p>
             </div>
             <div class="px-8 pb-10">
-                <form class="flex flex-col gap-6" onsubmit="event.preventDefault();">
+                <form id="recuperar-form" class="flex flex-col gap-6" onsubmit="event.preventDefault();">
                     <div class="flex flex-col gap-2">
                         <label class="text-gray-700 dark:text-white text-sm font-medium leading-normal">Correo
                             electrónico</label>
                         <div class="relative flex items-center">
-                            <input
+                            <input name="email"
                                 class="w-full h-12 rounded-lg pl-11 pr-4 text-gray-900 dark:text-white bg-gray-50 dark:bg-input-bg border border-gray-300 dark:border-input-border focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-gray-400 dark:placeholder:text-[#5a8069] transition-all duration-200 outline-none text-base"
                                 placeholder="ejemplo@correo.com" type="email" />
                             <div
@@ -78,7 +78,7 @@
                             </div>
                         </div>
                     </div>
-                    <button
+                    <button type="submit"
                         class="w-full h-12 bg-primary hover:bg-primary-hover text-[#122118] font-bold text-base rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2">
                         <span>Enviar instrucciones</span>
                         <span class="material-symbols-outlined text-xl">send</span>
@@ -86,7 +86,7 @@
                 </form>
                 <div class="mt-8 text-center border-t border-gray-200 dark:border-white/10 pt-6">
                     <a class="text-primary font-semibold hover:underline flex items-center justify-center gap-2 text-sm"
-                        href="#">
+                        href="{{ url_for('front.login_page') }}">
                         <span class="material-symbols-outlined text-lg">arrow_back</span>
                         Volver al inicio de sesión
                     </a>
@@ -97,6 +97,33 @@
             style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA1J7IPWKDewRONMQyRz6VPIFn99ZeTgyy7pYM-ZECQDxTyMFOS__bCddmneLKlFjP1xhpZDNa2hp8fxP2Tg0OuSmfQ235nOpOjpOkPKFyn2qxLf0upjqpwJfKPU_GRVTIb1kM8mYvlt5XvriV6CUsQlso66nzayAlhJP7RshXbIkYnP0-SCiPd71Ax7Cx1HFLKNJOqFBB06TZnf_Bp1Qjp2W_3ZcIJBO7ldDFoTjQ2pXbDBBxsBGeOqpjJ_E149GJYljzpAUEY3cM'); background-size: cover; background-position: center;">
         </div>
     </div>
+
+    <script>
+        (function(){
+            const form = document.getElementById('recuperar-form');
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                const email = (form.querySelector('input[name="email"]') || {}).value || '';
+                try {
+                    const res = await fetch('{{ url_for("auth.recuperar_password") }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    });
+                    if (res.ok) {
+                        alert('Si el correo está registrado, recibirás un enlace para restablecer la contraseña.');
+                        window.location.href = '{{ url_for("front.login_page") }}';
+                    } else {
+                        const data = await res.json().catch(()=>({}));
+                        alert(data.error || 'Ocurrió un error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error de red. Intenta nuevamente.');
+                }
+            });
+        })();
+    </script>
 
 </body>
 

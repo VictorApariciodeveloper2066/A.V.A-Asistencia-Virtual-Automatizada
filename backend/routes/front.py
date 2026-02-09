@@ -173,6 +173,16 @@ def ver_asistencia(course_id):
 def login_page():
     return render_template('login.html')
 
+
+@front_bp.route('/recuperar')
+def recuperar_page():
+    return render_template('Recuperar.html')
+
+
+@front_bp.route('/restablecer/<token>')
+def restablecer_page(token):
+    return render_template('Restablecer.html', token=token)
+
 @front_bp.route('/register')
 def register_page():
     return render_template('register.html')

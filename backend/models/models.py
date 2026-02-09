@@ -11,6 +11,8 @@ class User(db.Model):
     password = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50), nullable=True, default=None)
     career = db.Column(db.String(150), nullable=True)
+    primer_nombre = db.Column(db.String(100), nullable=True)
+    primer_apellido = db.Column(db.String(100), nullable=True)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)

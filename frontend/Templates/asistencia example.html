@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Lista de Asistencia de Alumnos - AVA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#39E079",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#0A1A11",
+                        "forest": "#122017"
+                    },
+                    fontFamily: {
+                        display: "Lexend",
+                        sans: "Lexend"
+                    }
+                }
+            }
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply font-display bg-background-dark text-gray-200;
+            }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }.custom-checkbox {
+            @apply appearance-none size-5 rounded border-2 border-gray-600 bg-transparent checked:bg-primary checked:border-primary cursor-pointer transition-all relative;
+        }
+        .custom-checkbox:checked::after {
+            content: 'check';
+            font-family: 'Material Symbols Outlined';
+            @apply absolute inset-0 text-[16px] text-background-dark flex items-center justify-center font-bold;
+        }
+    </style>
+</head>
+
+<body class="font-display">
+    <div class="flex min-h-screen">
+        <aside
+            class="w-20 lg:w-64 flex-shrink-0 bg-forest border-r border-white/5 flex flex-col transition-all duration-300">
+            <div class="p-4 border-b border-white/5">
+                <div class="flex items-center gap-3 justify-center lg:justify-start">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDXZwrelUU4o0ezC4rX09HJbt_hIb6-rcBz5Udce1GI8lo6RM8f_MfcZdcsKguK771m8v_utchNTXAwCtfezho-wDX7BOFvaQlglb_uS6YLvOVGqVaWywY4SYEiYO2apYiqH7vOovmULU31MvqPLwQ8A4p9_gPHaM_NnhE7gKAsRSnn9WAJBj55zxiwXWSJti6Qqt3CKewEmXCRaqHQqgrLvjiMJ6XEfv8t_auvrLjaU7ekECNPiD5P6oPFps1HyjKJQI7qaznfSGw");'>
+                    </div>
+                    <div class="hidden lg:flex flex-col">
+                        <h1 class="text-white text-base font-medium leading-normal">Prof. Alex Morgan</h1>
+                        <p class="text-primary text-xs font-normal leading-normal">Facultad de Ingeniería</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 px-2 py-4 space-y-1">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary" href="#">
+                    <span class="material-symbols-outlined fill">group</span>
+                    <span class="hidden lg:inline text-sm font-medium">Asistencia</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">library_books</span>
+                    <span class="hidden lg:inline text-sm font-medium">Mis Cursos</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">analytics</span>
+                    <span class="hidden lg:inline text-sm font-medium">Reportes</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">calendar_today</span>
+                    <span class="hidden lg:inline text-sm font-medium">Calendario</span>
+                </a>
+            </nav>
+            <div class="px-2 py-4 mt-auto border-t border-white/5">
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span class="hidden lg:inline text-sm font-medium">Configuración</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-900/10 rounded-lg mt-1" href="#">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="hidden lg:inline text-sm font-medium">Cerrar Sesión</span>
+                </a>
+            </div>
+        </aside>
+        <main class="flex-1 p-4 lg:p-8 overflow-y-auto bg-background-dark">
+            <div class="max-w-7xl mx-auto h-full flex flex-col">
+                <header class="flex flex-wrap justify-between items-end gap-4 mb-8">
+                    <div>
+                        <h2 class="text-xs font-semibold text-primary uppercase tracking-[0.2em] mb-1">Curso Actual</h2>
+                        <h1 class="text-3xl font-bold text-white tracking-tight">Cálculo Diferencial - Grupo B</h1>
+                        <p class="text-gray-400 text-sm mt-1">Jueves, 24 de Octubre • 08:00 AM - 10:00 AM</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex flex-col items-end">
+                            <button
+                                class="bg-primary text-background-dark px-6 py-2 rounded-full font-bold text-sm hover:brightness-110 transition-all flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px]">save</span>
+                                Guardar Asistencia
+                            </button>
+                        </div>
+                    </div>
+                </header>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-forest border border-white/5 p-4 rounded-xl flex items-center gap-4">
+                        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">groups</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Total Alumnos</p>
+                            <p class="text-xl font-bold text-white">32</p>
+                        </div>
+                    </div>
+                    <div class="bg-forest border border-white/5 p-4 rounded-xl flex items-center gap-4">
+                        <div class="size-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+                            <span class="material-symbols-outlined">how_to_reg</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Presentes</p>
+                            <p class="text-xl font-bold text-white">28</p>
+                        </div>
+                    </div>
+                    <div class="bg-forest border border-white/5 p-4 rounded-xl flex items-center gap-4">
+                        <div class="size-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-400">
+                            <span class="material-symbols-outlined">person_off</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Inasistentes</p>
+                            <p class="text-xl font-bold text-white">4</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-forest border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/5 bg-white/5">
+                                    <th class="py-4 px-6 w-16">
+                                        <input class="custom-checkbox" type="checkbox" />
+                                    </th>
+                                    <th class="py-4 px-6 text-xs font-bold uppercase tracking-widest text-gray-400">
+                                        Alumno</th>
+                                    <th
+                                        class="py-4 px-6 text-xs font-bold uppercase tracking-widest text-gray-400 text-center">
+                                        Estado de Asistencia</th>
+                                    <th
+                                        class="py-4 px-6 text-xs font-bold uppercase tracking-widest text-gray-400 text-right">
+                                        Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                <tr class="hover:bg-white/[0.02] transition-colors group">
+                                    <td class="py-4 px-6">
+                                        <input checked="" class="custom-checkbox" type="checkbox" />
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="size-10 rounded-full bg-gray-800 flex items-center justify-center font-bold text-sm text-primary">
+                                                AM</div>
+                                            <div>
+                                                <p class="font-medium text-white">Aguilar, Mateo</p>
+                                                <p class="text-xs text-gray-500">ID: 20240012</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex justify-center gap-6">
+                                            <button class="flex flex-col items-center gap-1 group/btn" title="Presente">
+                                                <span
+                                                    class="material-symbols-outlined fill text-primary text-[28px]">check_circle</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-primary uppercase">Presente</span>
+                                            </button>
+                                            <button
+                                                class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity"
+                                                title="Justificado">
+                                                <span
+                                                    class="material-symbols-outlined text-yellow-500 text-[28px]">error</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-yellow-500 uppercase">Justificado</span>
+                                            </button>
+                                            <button
+                                                class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity"
+                                                title="Inasistente">
+                                                <span
+                                                    class="material-symbols-outlined text-red-500 text-[28px]">cancel</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-red-500 uppercase">Inasistente</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 text-right">
+                                        <button class="p-2 text-gray-500 hover:text-white"><span
+                                                class="material-symbols-outlined">more_vert</span></button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors group">
+                                    <td class="py-4 px-6">
+                                        <input class="custom-checkbox" type="checkbox" />
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="size-10 rounded-full bg-gray-800 flex items-center justify-center font-bold text-sm text-primary">
+                                                BC</div>
+                                            <div>
+                                                <p class="font-medium text-white">Beltrán, Camila</p>
+                                                <p class="text-xs text-gray-500">ID: 20240045</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex justify-center gap-6">
+                                            <button
+                                                class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity"
+                                                title="Presente">
+                                                <span
+                                                    class="material-symbols-outlined text-primary text-[28px]">check_circle</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-primary uppercase">Presente</span>
+                                            </button>
+                                            <button class="flex flex-col items-center gap-1" title="Justificado">
+                                                <span
+                                                    class="material-symbols-outlined fill text-yellow-500 text-[28px]">error</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-yellow-500 uppercase">Justificado</span>
+                                            </button>
+                                            <button
+                                                class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity"
+                                                title="Inasistente">
+                                                <span
+                                                    class="material-symbols-outlined text-red-500 text-[28px]">cancel</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-red-500 uppercase">Inasistente</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 text-right">
+                                        <button class="p-2 text-gray-500 hover:text-white"><span
+                                                class="material-symbols-outlined">more_vert</span></button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors group">
+                                    <td class="py-4 px-6">
+                                        <input class="custom-checkbox" type="checkbox" />
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="size-10 rounded-full bg-gray-800 flex items-center justify-center font-bold text-sm text-primary">
+                                                DJ</div>
+                                            <div>
+                                                <p class="font-medium text-white">Díaz, Julián</p>
+                                                <p class="text-xs text-gray-500">ID: 20240089</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex justify-center gap-6">
+                                            <button
+                                                class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity"
+                                                title="Presente">
+                                                <span
+                                                    class="material-symbols-outlined text-primary text-[28px]">check_circle</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-primary uppercase">Presente</span>
+                                            </button>
+                                            <button
+                                                class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity"
+                                                title="Justificado">
+                                                <span
+                                                    class="material-symbols-outlined text-yellow-500 text-[28px]">error</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-yellow-500 uppercase">Justificado</span>
+                                            </button>
+                                            <button class="flex flex-col items-center gap-1" title="Inasistente">
+                                                <span
+                                                    class="material-symbols-outlined fill text-red-500 text-[28px]">cancel</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-red-500 uppercase">Inasistente</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 text-right">
+                                        <button class="p-2 text-gray-500 hover:text-white"><span
+                                                class="material-symbols-outlined">more_vert</span></button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors group">
+                                    <td class="py-4 px-6">
+                                        <input checked="" class="custom-checkbox" type="checkbox" />
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="size-10 rounded-full bg-gray-800 flex items-center justify-center font-bold text-sm text-primary">
+                                                EV</div>
+                                            <div>
+                                                <p class="font-medium text-white">Espitia, Valentina</p>
+                                                <p class="text-xs text-gray-500">ID: 20240112</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex justify-center gap-6">
+                                            <button class="flex flex-col items-center gap-1" title="Presente">
+                                                <span
+                                                    class="material-symbols-outlined fill text-primary text-[28px]">check_circle</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-primary uppercase">Presente</span>
+                                            </button>
+                                            <button
+                                                class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity"
+                                                title="Justificado">
+                                                <span
+                                                    class="material-symbols-outlined text-yellow-500 text-[28px]">error</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-yellow-500 uppercase">Justificado</span>
+                                            </button>
+                                            <button
+                                                class="flex flex-col items-center gap-1 opacity-20 hover:opacity-100 transition-opacity"
+                                                title="Inasistente">
+                                                <span
+                                                    class="material-symbols-outlined text-red-500 text-[28px]">cancel</span>
+                                                <span
+                                                    class="text-[10px] font-bold text-red-500 uppercase">Inasistente</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 text-right">
+                                        <button class="p-2 text-gray-500 hover:text-white"><span
+                                                class="material-symbols-outlined">more_vert</span></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 bg-white/5 border-t border-white/5 flex items-center justify-between">
+                        <p class="text-xs text-gray-500">Mostrando <span class="text-white font-bold">4 de 32</span>
+                            alumnos registrados</p>
+                        <div class="flex gap-2">
+                            <button class="p-1 rounded bg-white/5 text-gray-400 hover:text-white disabled:opacity-30"
+                                disabled="">
+                                <span class="material-symbols-outlined">chevron_left</span>
+                            </button>
+                            <button class="p-1 rounded bg-white/5 text-gray-400 hover:text-white">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

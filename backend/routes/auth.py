@@ -3,6 +3,12 @@ from backend.models import User, Course, Asistencia, User_course
 from backend.extensions import db
 from sqlalchemy import or_
 from datetime import datetime
+from itsdangerous import URLSafeTimedSerializer
+from flask import current_app
+import secrets, string
+from flask_mail import Message
+from backend.extensions import mail
+import traceback
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -172,6 +178,76 @@ def generate_code(course_id):
     db.session.commit()
 
     return jsonify({"code": new_code, "expires": expires.isoformat() if expires else None}), 200
+
+
+def generar_token(email):
+    serializer = URLSafeTimedSerializer(current_app.config.get('SECRET_KEY', 'supersecretkey'))
+    return serializer.dumps(email, salt='recuperar-password-salt')
+
+
+@auth_bp.route('/recuperar_password', methods=['POST'])
+def recuperar_password():
+    try:
+        data = request.get_json() or {}
+        email = data.get('email')
+
+        if not email:
+            return jsonify({"error": "El correo es requerido"}), 400
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            token = generar_token(email)
+            recover_url = url_for('front.restablecer_page', token=token, _external=True)
+            # Always print the recovery URL to console for development/testing
+            print(f"RECOVERY LINK: {recover_url}")
+            current_app.logger.info(f"RECOVERY LINK: {recover_url}")
+
+            msg = Message("Restablecer Contraseña - AVA",
+                          sender=current_app.config.get('MAIL_DEFAULT_SENDER', current_app.config.get('MAIL_USERNAME')),
+                          recipients=[email])
+            msg.body = f"Hola {user.username},\n\nPara restablecer tu contraseña, haz clic en el siguiente enlace:\n{recover_url}\n\nEste enlace expirará en 30 minutos.\nSi no solicitaste este cambio, puedes ignorar este correo."
+            try:
+                if mail:
+                    mail.send(msg)
+                else:
+                    current_app.logger.debug(f"Mail disabled, recovery link: {recover_url}")
+            except Exception as e:
+                # Log the error but DO NOT return 500 — allow flow to continue in development.
+                current_app.logger.exception('Error sending recovery email')
+                traceback.print_exc()
+                current_app.logger.error('Continuing despite mail send error; recovery link was: %s', recover_url)
+                # Do not expose full trace to client; respond as if instructions were sent.
+                # This prevents a 500 when SMTP is not configured during development.
+                pass
+
+        # Responder siempre de forma ambigua para seguridad
+        return jsonify({"message": "Si el correo está registrado, recibirás un enlace pronto."}), 200
+    except Exception as e:
+        traceback.print_exc()
+        current_app.logger.exception('Unhandled error in recuperar_password')
+        return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
+
+
+@auth_bp.route('/reset/<token>', methods=['POST'])
+def reset_with_token(token):
+    serializer = URLSafeTimedSerializer(current_app.config.get('SECRET_KEY', 'supersecretkey'))
+    try:
+        email = serializer.loads(token, salt='recuperar-password-salt', max_age=1800)
+    except Exception:
+        return jsonify({"error": "El enlace es inválido o ha expirado"}), 400
+
+    data = request.get_json() or {}
+    nueva_pass = data.get('password')
+    if not nueva_pass:
+        return jsonify({"error": "La nueva contraseña es requerida"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if user:
+        user.set_password(nueva_pass)
+        db.session.commit()
+        return jsonify({"message": "Contraseña actualizada con éxito"}), 200
+
+    return jsonify({"error": "Usuario no encontrado"}), 404
 
 
 @auth_bp.route('/submit_attendance', methods=['POST'])
