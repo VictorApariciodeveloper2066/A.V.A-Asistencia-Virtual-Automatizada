@@ -147,6 +147,14 @@ def ver_asistencia(course_id):
     asistencias_hoy = Asistencia.query.filter_by(course_id=course_id, date=today).all()
     mapa_asistencia = {a.user_id: a.state for a in asistencias_hoy}
 
+    # Crear registros de asistencia para estudiantes que no tienen registro hoy
+    for alumno in alumnos_inscritos:
+        if alumno.id not in mapa_asistencia:
+            nueva_asistencia = Asistencia(user_id=alumno.id, course_id=course_id, date=today, time=now.time(), state='Ausente')
+            db.session.add(nueva_asistencia)
+            mapa_asistencia[alumno.id] = 'Ausente'
+    db.session.commit()
+
     # Get pending justificativos for this course
     from backend.models import Justificativo
     justificativos_pendientes = Justificativo.query.filter_by(course_id=course_id, estado='Pendiente').all()
@@ -231,15 +239,44 @@ def historial_general():
     
     return render_template('historial_general.html', historiales=historiales, profesor=profesor, courses=courses)
 
+@front_bp.route('/historial_alumno')
+def historial_alumno():
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    user = User.query.filter_by(username=session['username']).first()
+    
+    if user.role == 'teacher':
+        return redirect(url_for('front.historial_general'))
+    
+    # Obtener cursos del alumno
+    courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == user.id).all()
+    course_ids = [c.id for c in courses]
+    
+    # Obtener historiales de los cursos del alumno
+    historiales = HistorialAsistencia.query.filter(HistorialAsistencia.course_id.in_(course_ids)).order_by(HistorialAsistencia.fecha.desc(), HistorialAsistencia.hora.desc()).all()
+    
+    return render_template('historial_alumno.html', user=user, courses=courses, historiales=historiales)
+
 @front_bp.route('/historial_detalle/<int:historial_id>')
 def ver_historial_detalle(historial_id):
     if 'username' not in session:
         return redirect(url_for('front.login_page'))
-    profesor = User.query.filter_by(username=session['username']).first()
-    if not profesor or profesor.role != 'teacher':
-        return redirect(url_for('front.index'))
-
+    user = User.query.filter_by(username=session['username']).first()
+    
     historial = HistorialAsistencia.query.get_or_404(historial_id)
+    
+    # Verificar que el usuario tenga acceso (profesor del curso o alumno inscrito)
+    if user.role == 'teacher':
+        # Verificar que el profesor esté asociado al curso
+        inscrito = db.session.query(User_course).filter_by(user_id=user.id, course_id=historial.course_id).first()
+        if not inscrito:
+            return redirect(url_for('front.index'))
+    else:
+        # Verificar que el alumno esté inscrito en el curso
+        inscrito = db.session.query(User_course).filter_by(user_id=user.id, course_id=historial.course_id).first()
+        if not inscrito:
+            return redirect(url_for('front.index'))
+    
     detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
     
     # Agrupar por estado
@@ -262,7 +299,10 @@ def ver_historial_detalle(historial_id):
             else:
                 ausentes.append(alumno_data)
     
-    return render_template('historial_detalle.html', historial=historial, presentes=presentes, justificados=justificados, ausentes=ausentes, profesor=profesor)
+    # Obtener el profesor del curso
+    profesor = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == historial.course_id, User.role == 'teacher').first()
+    
+    return render_template('historial_detalle.html', historial=historial, presentes=presentes, justificados=justificados, ausentes=ausentes, profesor=profesor or user, user=user)
 
 @front_bp.route('/descargar_pdf/<int:historial_id>')
 def descargar_pdf(historial_id):
@@ -276,11 +316,19 @@ def descargar_pdf(historial_id):
     
     if 'username' not in session:
         return redirect(url_for('front.login_page'))
-    profesor = User.query.filter_by(username=session['username']).first()
-    if not profesor or profesor.role != 'teacher':
-        return redirect(url_for('front.index'))
-
+    user = User.query.filter_by(username=session['username']).first()
+    
     historial = HistorialAsistencia.query.get_or_404(historial_id)
+    
+    # Verificar acceso
+    inscrito = db.session.query(User_course).filter_by(user_id=user.id, course_id=historial.course_id).first()
+    if not inscrito:
+        return redirect(url_for('front.index'))
+    
+    # Obtener profesor del curso
+    profesor = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == historial.course_id, User.role == 'teacher').first()
+    if not profesor:
+        profesor = user
     detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
     
     buffer = BytesIO()
@@ -381,11 +429,14 @@ def descargar_excel(historial_id):
     
     if 'username' not in session:
         return redirect(url_for('front.login_page'))
-    profesor = User.query.filter_by(username=session['username']).first()
-    if not profesor or profesor.role != 'teacher':
-        return redirect(url_for('front.index'))
-
+    user = User.query.filter_by(username=session['username']).first()
+    
     historial = HistorialAsistencia.query.get_or_404(historial_id)
+    
+    # Verificar acceso
+    inscrito = db.session.query(User_course).filter_by(user_id=user.id, course_id=historial.course_id).first()
+    if not inscrito:
+        return redirect(url_for('front.index'))
     detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
     
     wb = Workbook()

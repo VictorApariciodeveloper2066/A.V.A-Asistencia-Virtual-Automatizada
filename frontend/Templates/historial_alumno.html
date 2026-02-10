@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Historial de Asistencias - {{ course.name if course else 'AVA' }}</title>
+    <title>Mi Historial de Asistencias</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/imgs/Leon1.png') }}" />
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
@@ -16,10 +16,9 @@
                 extend: {
                     colors: {
                         primary: "#39E079",
-                        "forest-deep": "#0A1A12",
-                        "forest-card": "#12261B",
-                        "neon-green": "#39E079",
-                        "forest": "#122017"
+                        "background-dark": "#0A1A11",
+                        "forest": "#122017",
+                        "forest-card": "#12261B"
                     },
                     fontFamily: {
                         display: "Lexend"
@@ -36,20 +35,7 @@
             font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
         body {
-            background-color: #0A1A12;
-        }
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0A1A12;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #1A3326;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #39E079;
+            background-color: #0A1A11;
         }
     </style>
 </head>
@@ -60,11 +46,11 @@
             <div class="p-4 border-b border-white/5">
                 <div class="flex items-center gap-3 justify-center lg:justify-start">
                     <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold border-2 border-primary/20">
-                        {{ profesor.primer_nombre[0] if profesor and profesor.primer_nombre else 'P' }}{{ profesor.primer_apellido[0] if profesor and profesor.primer_apellido else 'P' }}
+                        {{ user.primer_nombre[0] if user.primer_nombre else 'A' }}{{ user.primer_apellido[0] if user.primer_apellido else 'A' }}
                     </div>
                     <div class="hidden lg:flex flex-col">
-                        <h1 class="text-white text-base font-medium leading-normal">{{ profesor.primer_nombre if profesor and profesor.primer_nombre else 'Profesor' }} {{ profesor.primer_apellido if profesor and profesor.primer_apellido else '' }}</h1>
-                        <p class="text-primary text-xs font-normal leading-normal">{{ profesor.career if profesor and profesor.career else 'Facultad' }}</p>
+                        <h1 class="text-white text-base font-medium leading-normal">{{ user.primer_nombre }} {{ user.primer_apellido }}</h1>
+                        <p class="text-primary text-xs font-normal leading-normal">{{ user.career }}</p>
                     </div>
                 </div>
             </div>
@@ -73,11 +59,7 @@
                     <span class="material-symbols-outlined">calendar_month</span>
                     <span class="hidden lg:inline text-sm font-medium">Mi Horario</span>
                 </a>
-                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="{{ url_for('front.ver_asistencia', course_id=course.id) }}">
-                    <span class="material-symbols-outlined">group</span>
-                    <span class="hidden lg:inline text-sm font-medium">Asistencia</span>
-                </a>
-                <a class="flex items-center gap-3 px-3 py-2 bg-neon-green/10 text-neon-green rounded-lg" href="#">
+                <a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg" href="#">
                     <span class="material-symbols-outlined fill">history</span>
                     <span class="hidden lg:inline text-sm font-medium">Historial</span>
                 </a>
@@ -93,46 +75,51 @@
                 </a>
             </div>
         </aside>
-        <main class="flex-1 overflow-y-auto">
-            <div class="max-w-7xl mx-auto p-4 lg:p-8">
-                <header class="mb-8">
+        <main class="flex-1 overflow-y-auto p-4 lg:p-8">
+            <div class="max-w-7xl mx-auto">
+                <header class="mb-6 md:mb-8">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                         <div>
-                            <h1 class="text-3xl font-bold text-white mb-2">Historial de Asistencias</h1>
-                            <p class="text-gray-400 text-sm">{{ course.name if course else 'Curso' }}</p>
+                            <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">Mi Historial de Asistencias</h1>
+                            <p class="text-gray-400 text-xs md:text-sm">Revisa las sesiones guardadas de tus materias</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <input id="search-code" type="text" placeholder="Buscar por código..." class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder:text-gray-500 focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
-                            <button onclick="filtrarPorCodigo()" class="bg-primary text-background-dark px-4 py-2 rounded-lg font-bold hover:brightness-110 transition-all">
-                                <span class="material-symbols-outlined">search</span>
+                            <input id="search-code" type="text" placeholder="Buscar por código..." class="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
+                            <button onclick="filtrarPorCodigo()" class="bg-primary text-background-dark px-3 py-2 rounded-lg font-bold hover:brightness-110 transition-all">
+                                <span class="material-symbols-outlined text-[20px]">search</span>
                             </button>
                         </div>
                     </div>
                 </header>
-                
+
                 {% if historiales %}
-                <div class="bg-forest-card rounded-2xl border border-white/10 overflow-hidden">
+                <!-- Vista de escritorio -->
+                <div class="hidden md:block bg-forest-card rounded-2xl border border-white/10 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-white/5 bg-white/[0.02]">
-                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neon-green/70">Código de Sesión</th>
-                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neon-green/70">Fecha</th>
-                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neon-green/70">Estadísticas</th>
-                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neon-green/70 text-right">Acción</th>
+                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-primary/70">Código</th>
+                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-primary/70">Fecha</th>
+                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-primary/70">Materia</th>
+                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-primary/70">Estadísticas</th>
+                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-primary/70 text-right">Acción</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-white/5">
                                 {% for h in historiales %}
                                 <tr class="hover:bg-white/[0.03] transition-colors group">
                                     <td class="px-6 py-4">
-                                        <span class="font-mono text-neon-green">{{ h.codigo_sesion }}</span>
+                                        <span class="font-mono text-primary text-sm">{{ h.codigo_sesion }}</span>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-col">
-                                            <span class="text-white font-medium">{{ h.fecha.strftime('%d %b, %Y') }}</span>
+                                            <span class="text-white font-medium text-sm">{{ h.fecha.strftime('%d %b, %Y') }}</span>
                                             <span class="text-xs text-gray-500">{{ h.hora.strftime('%I:%M %p') }}</span>
                                         </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-gray-300 text-sm">{{ h.curso.name }}</span>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-4 text-xs">
@@ -154,8 +141,8 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <a href="{{ url_for('front.ver_historial_detalle', historial_id=h.id) }}" class="bg-neon-green/10 text-neon-green hover:bg-neon-green hover:text-forest-deep px-4 py-2 rounded-lg text-sm font-bold transition-all inline-block">
-                                            Detalles
+                                        <a href="{{ url_for('front.ver_historial_detalle', historial_id=h.id) }}" class="bg-primary/10 text-primary hover:bg-primary hover:text-forest px-4 py-2 rounded-lg text-sm font-bold transition-all inline-block">
+                                            Ver Detalles
                                         </a>
                                     </td>
                                 </tr>
@@ -163,6 +150,45 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- Vista móvil -->
+                <div class="md:hidden space-y-4">
+                    {% for h in historiales %}
+                    <div class="bg-forest-card rounded-xl border border-white/10 p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Código</p>
+                                <p class="font-mono text-primary text-sm font-bold">{{ h.codigo_sesion }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500 mb-1">{{ h.fecha.strftime('%d %b, %Y') }}</p>
+                                <p class="text-xs text-gray-400">{{ h.hora.strftime('%I:%M %p') }}</p>
+                            </div>
+                        </div>
+                        <p class="text-white font-medium text-sm mb-3">{{ h.curso.name }}</p>
+                        <div class="flex items-center gap-3 text-xs mb-3">
+                            <div class="flex items-center gap-1">
+                                <span class="size-2 rounded-full bg-blue-400"></span>
+                                <span class="text-gray-400">P:</span>
+                                <span class="text-white font-semibold">{{ h.total_presentes }}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="size-2 rounded-full bg-yellow-400"></span>
+                                <span class="text-gray-400">J:</span>
+                                <span class="text-white font-semibold">{{ h.total_justificados }}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="size-2 rounded-full bg-red-400"></span>
+                                <span class="text-gray-400">A:</span>
+                                <span class="text-white font-semibold">{{ h.total_ausentes }}</span>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('front.ver_historial_detalle', historial_id=h.id) }}" class="block w-full text-center bg-primary/10 text-primary hover:bg-primary hover:text-forest px-4 py-2 rounded-lg text-sm font-bold transition-all">
+                            Ver Detalles
+                        </a>
+                    </div>
+                    {% endfor %}
                 </div>
                 {% else %}
                 <div class="bg-forest-card rounded-2xl border border-white/10 p-12 text-center">
@@ -178,14 +204,26 @@
     <script>
     function filtrarPorCodigo() {
         const searchValue = document.getElementById('search-code').value.trim().toLowerCase();
-        const rows = document.querySelectorAll('tbody tr');
         
+        // Filtrar tabla de escritorio
+        const rows = document.querySelectorAll('tbody tr');
         rows.forEach(row => {
             const codigo = row.querySelector('.font-mono')?.textContent.toLowerCase() || '';
             if (!searchValue || codigo.includes(searchValue)) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
+            }
+        });
+        
+        // Filtrar cards de móvil
+        const cards = document.querySelectorAll('.md\\:hidden > div');
+        cards.forEach(card => {
+            const codigo = card.querySelector('.font-mono')?.textContent.toLowerCase() || '';
+            if (!searchValue || codigo.includes(searchValue)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
             }
         });
     }

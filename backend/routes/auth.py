@@ -546,3 +546,28 @@ def guardar_historial():
             "codigo_sesion": codigo_sesion,
             "historial_id": historial.id
         }), 201
+
+
+@auth_bp.route('/actualizar_aula', methods=['POST'])
+def actualizar_aula():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user or user.role != 'teacher':
+        return jsonify({"error": "Solo profesores pueden actualizar el aula"}), 403
+    
+    data = request.get_json() or {}
+    course_id = data.get('course_id')
+    aula = data.get('aula', '').strip()
+    
+    if not course_id:
+        return jsonify({"error": "course_id requerido"}), 400
+    
+    course = Course.query.get(course_id)
+    if not course:
+        return jsonify({"error": "Curso no encontrado"}), 404
+    
+    course.aula = aula if aula else None
+    db.session.commit()
+    
+    return jsonify({"message": "Aula actualizada", "aula": course.aula}), 200
