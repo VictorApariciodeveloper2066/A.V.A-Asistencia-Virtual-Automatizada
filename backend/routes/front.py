@@ -708,13 +708,19 @@ def gestionar_comandantes():
     if not user or user.role != 'teacher':
         return redirect(url_for('front.dashboard'))
     
-    # Obtener cursos del profesor
-    courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == user.id).all()
-    
-    # Obtener estudiantes por curso
-    course_students = {}
-    for course in courses:
-        students = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == course.id, User.role == 'student').all()
-        course_students[course.id] = students
-    
-    return render_template('gestionar_comandantes.html', user=user, courses=courses, course_students=course_students)
+    try:
+        # Obtener cursos del profesor
+        courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == user.id).all()
+        
+        # Obtener estudiantes por curso
+        course_students = {}
+        for course in courses:
+            students = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == course.id, User.role == 'student').all()
+            course_students[course.id] = students
+        
+        return render_template('gestionar_comandantes.html', user=user, courses=courses, course_students=course_students)
+    except Exception as e:
+        print(f"Error en gestionar_comandantes: {e}")
+        import traceback
+        traceback.print_exc()
+        return redirect(url_for('front.dashboard'))

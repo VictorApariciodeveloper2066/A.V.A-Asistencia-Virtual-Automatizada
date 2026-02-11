@@ -671,6 +671,10 @@ def actualizar_aula():
 
 @auth_bp.route('/google/login')
 def google_login():
+    # Verificar si OAuth está configurado
+    if not current_app.config.get('GOOGLE_CLIENT_ID') or not current_app.config.get('GOOGLE_CLIENT_SECRET'):
+        return jsonify({"error": "Google OAuth no está configurado"}), 503
+    
     redirect_uri = url_for('auth.google_callback', _external=True)
     print(f"Google OAuth redirect URI: {redirect_uri}")
     return oauth.google.authorize_redirect(redirect_uri)
