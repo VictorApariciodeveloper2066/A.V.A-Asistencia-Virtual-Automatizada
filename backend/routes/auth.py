@@ -657,7 +657,7 @@ def actualizar_aula():
 @auth_bp.route('/google/login')
 def google_login():
     redirect_uri = url_for('auth.google_callback', _external=True)
-    print(f"DEBUG: Redirect URI being used: {redirect_uri}")
+    print(f"Google OAuth redirect URI: {redirect_uri}")
     return oauth.google.authorize_redirect(redirect_uri)
 
 
