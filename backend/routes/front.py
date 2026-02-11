@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from backend.models import User, Course, User_course, Asistencia, HistorialAsistencia, DetalleAsistencia
 from backend.extensions import db
 from datetime import date, timedelta, datetime
+import pytz
 
 front_bp = Blueprint('front', __name__)
 
@@ -43,7 +44,10 @@ def dashboard():
     # Weekday names (Spanish) and organize courses by day index (1=Monday ... 7=Sunday)
     weekday_names = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
     slots_by_day = {i: [] for i in range(1, 8)}
-    now = datetime.now()
+    
+    # Usar timezone de Ecuador (UTC-5)
+    ecuador_tz = pytz.timezone('America/Guayaquil')
+    now = datetime.now(ecuador_tz)
     current_time = now.time()
     
     # Obtener formato de hora del usuario (por defecto 12h)
@@ -158,7 +162,8 @@ def ver_asistencia(course_id):
     course = Course.query.get_or_404(course_id)
 
     # verify class is active (optional: restrict access to class time)
-    now = datetime.now()
+    ecuador_tz = pytz.timezone('America/Guayaquil')
+    now = datetime.now(ecuador_tz)
     try:
         current_day = now.weekday() + 1
         is_active = (isinstance(course.dia, int) and ((1 <= course.dia <= 7 and course.dia == current_day) or (0 <= course.dia <= 6 and course.dia == now.weekday())) and course.start_time <= now.time() <= course.end_time)
