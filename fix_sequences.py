@@ -6,6 +6,9 @@ if not DATABASE_URL:
     print("ERROR: DATABASE_URL no configurada")
     exit(1)
 
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
 engine = create_engine(DATABASE_URL)
 
 tables = ['user', 'course', 'user_course', 'asistencia', 'justificativo', 'historial_asistencia', 'detalle_asistencia', 'log_asistencia']
@@ -13,9 +16,12 @@ tables = ['user', 'course', 'user_course', 'asistencia', 'justificativo', 'histo
 with engine.connect() as conn:
     for table in tables:
         try:
-            result = conn.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE(MAX(id), 1)) FROM {table}"))
+            # Get max ID and set sequence
+            result = conn.execute(text(f"SELECT COALESCE((SELECT MAX(id) FROM {table}), 0) + 1 as next_id"))
+            next_id = result.scalar()
+            conn.execute(text(f"ALTER SEQUENCE {table}_id_seq RESTART WITH {next_id}"))
             conn.commit()
-            print(f"✓ Secuencia de {table} reseteada")
+            print(f"✓ {table}: secuencia reseteada a {next_id}")
         except Exception as e:
             print(f"✗ Error en {table}: {e}")
 
