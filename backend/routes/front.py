@@ -323,6 +323,23 @@ def ver_historial_detalle(historial_id):
     
     detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
     
+    # Si no hay detalles, reconstruir desde Asistencia
+    if not detalles:
+        asistencias = Asistencia.query.filter_by(course_id=historial.course_id, date=historial.fecha).all()
+        alumnos_inscritos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == historial.course_id, User.role == 'student').all()
+        mapa_estados = {a.user_id: a.state for a in asistencias}
+        
+        for alumno in alumnos_inscritos:
+            estado = mapa_estados.get(alumno.id, 'Ausente')
+            detalle = DetalleAsistencia(
+                historial_id=historial_id,
+                user_id=alumno.id,
+                estado=estado
+            )
+            db.session.add(detalle)
+        db.session.commit()
+        detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
+    
     # Agrupar por estado
     presentes = []
     justificados = []
@@ -391,7 +408,25 @@ def descargar_pdf(historial_id):
     profesor = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == historial.course_id, User.role == 'teacher').first()
     if not profesor:
         profesor = user
+    
     detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
+    
+    # Si no hay detalles, reconstruir desde Asistencia
+    if not detalles:
+        asistencias = Asistencia.query.filter_by(course_id=historial.course_id, date=historial.fecha).all()
+        alumnos_inscritos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == historial.course_id, User.role == 'student').all()
+        mapa_estados = {a.user_id: a.state for a in asistencias}
+        
+        for alumno in alumnos_inscritos:
+            estado = mapa_estados.get(alumno.id, 'Ausente')
+            detalle = DetalleAsistencia(
+                historial_id=historial_id,
+                user_id=alumno.id,
+                estado=estado
+            )
+            db.session.add(detalle)
+        db.session.commit()
+        detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
     
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -473,6 +508,31 @@ def descargar_pdf(historial_id):
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')])
         ]))
         elements.append(justificado_table)
+        elements.append(Spacer(1, 0.3*inch))
+    
+    # Alumnos Ausentes
+    ausentes = [d for d in detalles if d.estado == 'Ausente']
+    if ausentes:
+        elements.append(Paragraph(f"<b>Alumnos Ausentes ({len(ausentes)})</b>", styles['Heading2']))
+        ausente_data = [['#', 'Nombre Completo', 'Cédula']]
+        for idx, detalle in enumerate(ausentes, 1):
+            alumno = User.query.get(detalle.user_id)
+            if alumno:
+                nombre = f"{alumno.primer_nombre or ''} {alumno.primer_apellido or ''}".strip() or alumno.username
+                ausente_data.append([str(idx), nombre, alumno.ci or 'S/N'])
+        
+        ausente_table = Table(ausente_data, colWidths=[0.5*inch, 3.5*inch, 2*inch])
+        ausente_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#FF0000')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')])
+        ]))
+        elements.append(ausente_table)
     
     doc.build(elements)
     buffer.seek(0)
@@ -499,7 +559,25 @@ def descargar_excel(historial_id):
     inscrito = db.session.query(User_course).filter_by(user_id=user.id, course_id=historial.course_id).first()
     if not inscrito:
         return redirect(url_for('front.index'))
+    
     detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
+    
+    # Si no hay detalles, reconstruir desde Asistencia
+    if not detalles:
+        asistencias = Asistencia.query.filter_by(course_id=historial.course_id, date=historial.fecha).all()
+        alumnos_inscritos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == historial.course_id, User.role == 'student').all()
+        mapa_estados = {a.user_id: a.state for a in asistencias}
+        
+        for alumno in alumnos_inscritos:
+            estado = mapa_estados.get(alumno.id, 'Ausente')
+            detalle = DetalleAsistencia(
+                historial_id=historial_id,
+                user_id=alumno.id,
+                estado=estado
+            )
+            db.session.add(detalle)
+        db.session.commit()
+        detalles = DetalleAsistencia.query.filter_by(historial_id=historial_id).all()
     
     wb = Workbook()
     ws = wb.active

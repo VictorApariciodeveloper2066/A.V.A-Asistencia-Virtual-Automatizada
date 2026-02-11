@@ -83,8 +83,8 @@
                     <form class="flex flex-col gap-5" id="register_form">
                         <div id="register-error" class="mb-4 rounded-lg px-4 py-3 text-sm text-red-800 bg-red-50 border border-red-200" style="display:none;"></div>
                         <div class="flex flex-col gap-2">
-                            <label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Nombre
-                                completo</label>
+                            <label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Usuario</label>
+                            <p class="text-xs text-slate-500 dark:text-text-secondary/70 -mt-1 mb-1">Solo letras, números y guiones bajos (ej. juan_perez, estudiante123)</p>
                             <div class="relative">
                                 <span
                                     class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
@@ -92,7 +92,7 @@
                                 </span>
                                 <input name="username"
                                     class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-4 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all"
-                                    placeholder="ej. Juan Pérez" type="text" />
+                                    placeholder="ej. juan_perez" type="text" pattern="[a-zA-Z0-9_]+" title="Solo letras, números y guiones bajos" />
                             </div>
                         </div>
                         <div class="flex flex-col gap-2">
@@ -248,6 +248,15 @@
                             const password = (form.querySelector('input[name="password"]') || {}).value || '';
                             const password_confirm = (form.querySelector('input[name="password_confirm"]') || {}).value || '';
                             const email = (form.querySelector('input[name="email"]') || {}).value || '';
+                            
+                            // Validar formato de usuario
+                            const usernameRegex = /^[a-zA-Z0-9_]+$/;
+                            if (!usernameRegex.test(username)) {
+                                errorBox.textContent = 'El usuario solo puede contener letras, números y guiones bajos';
+                                errorBox.style.display = 'block';
+                                return;
+                            }
+                            
                             if (password !== password_confirm) {
                                 errorBox.textContent = 'Las contraseñas no coinciden';
                                 errorBox.style.display = 'block';
