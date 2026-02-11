@@ -57,40 +57,55 @@ def login():
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    if not data:
-        return jsonify({"error": "Missing JSON body"}), 400
+        if not data:
+            return jsonify({"error": "Missing JSON body"}), 400
 
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
 
-    if not username or not email or not password:
-        return jsonify({"error": "Username, email, and password required"}), 400
+        if not username or not email or not password:
+            return jsonify({"error": "Usuario, email y contraseña son requeridos"}), 400
+        
+        # Validar longitud mínima de contraseña
+        if len(password) < 8:
+            return jsonify({"error": "La contraseña debe tener al menos 8 caracteres"}), 400
+        
+        # Validar formato de usuario (alfanumérico y guiones bajos)
+        import re
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            return jsonify({"error": "El usuario solo puede contener letras, números y guiones bajos"}), 400
 
-    user_exists = User.query.filter_by(username=username).first()
-    email_exists = User.query.filter_by(email=email).first()
+        user_exists = User.query.filter_by(username=username).first()
+        email_exists = User.query.filter_by(email=email).first()
 
-    if user_exists:
-        return jsonify({"error": "Username already exists"}), 409
+        if user_exists:
+            return jsonify({"error": "El usuario ya existe"}), 409
 
-    if email_exists:
-        return jsonify({"error": "Email already exists"}), 409
+        if email_exists:
+            return jsonify({"error": "El email ya está registrado"}), 409
 
-    new_user = User(username=username, email=email)
-    new_user.set_password(password)
+        new_user = User(username=username, email=email)
+        new_user.set_password(password)
 
-    db.session.add(new_user)
-    db.session.commit()
+        db.session.add(new_user)
+        db.session.commit()
 
-    return jsonify({
-        "message": "Registration successful",
-        "user": {
-            "username": new_user.username,
-            "email": new_user.email
-        }
-    }), 201
+        return jsonify({
+            "message": "Registration successful",
+            "user": {
+                "username": new_user.username,
+                "email": new_user.email
+            }
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en registro: {e}")
+        traceback.print_exc()
+        return jsonify({"error": "Error en el registro. Intenta nuevamente."}), 500
 
 # Nueva ruta para marcar asistencia
 
