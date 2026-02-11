@@ -88,19 +88,44 @@ def create_app():
     # Ensure DB tables exist for this simple development environment
     try:
         with app.app_context():
-            # Quick check: if 'user' table missing, create all tables
-            inspector = None
-            try:
-                from sqlalchemy import inspect
-                inspector = inspect(db.engine)
-            except Exception:
-                inspector = None
-            if inspector:
-                tables = inspector.get_table_names()
-                if 'user' not in tables:
-                    db.create_all()
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            tables = inspector.get_table_names()
+            
+            if 'user' not in tables:
+                print('📦 Creando tablas...')
+                db.create_all()
+                print('✅ Tablas creadas')
+                
+                # Crear datos iniciales solo si no existen
+                if not User.query.first():
+                    print('📝 Creando datos iniciales...')
+                    from backend.models import User, Course
+                    
+                    admin = User(username='admin', email='admin@ava.com')
+                    admin.set_password('admin123')
+                    admin.role = 'teacher'
+                    admin.primer_nombre = 'Administrador'
+                    admin.primer_apellido = 'Sistema'
+                    admin.ci = '0000000000'
+                    admin.career = 'Profesor'
+                    db.session.add(admin)
+                    
+                    materias = [
+                        Course(name='Inglés', dia=1, start_time='08:00', end_time='10:00', aula='A-101'),
+                        Course(name='Matemáticas', dia=2, start_time='08:00', end_time='10:00', aula='A-102'),
+                        Course(name='Historia', dia=3, start_time='10:00', end_time='15:30', aula='A-103'),
+                        Course(name='Programación', dia=4, start_time='09:00', end_time='20:00', aula='LAB-1'),
+                        Course(name='Educación Física', dia=5, start_time='08:00', end_time='10:00', aula='CANCHA'),
+                    ]
+                    for materia in materias:
+                        db.session.add(materia)
+                    
+                    db.session.commit()
+                    print('✅ Datos iniciales creados')
+                    print('📧 Usuario: admin@ava.com')
+                    print('🔑 Contraseña: admin123')
     except Exception:
-        # if any error occurs here, log it but don't block app startup
         import traceback
         traceback.print_exc()
 
