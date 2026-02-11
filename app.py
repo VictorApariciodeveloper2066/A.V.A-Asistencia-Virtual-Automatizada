@@ -61,9 +61,9 @@ def create_app():
     app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
     app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
     
-    # Debug: verificar que las credenciales se cargaron
+    # Solo mostrar warning si OAuth está siendo usado
     if not app.config['GOOGLE_CLIENT_ID'] or not app.config['GOOGLE_CLIENT_SECRET']:
-        print("WARNING: Google OAuth credentials not found in .env file")
+        pass  # OAuth deshabilitado, no mostrar warning
     else:
         print(f"Google OAuth configured with client ID: {app.config['GOOGLE_CLIENT_ID'][:20]}...")
 
