@@ -89,9 +89,19 @@ def create_app():
     # Ensure DB tables exist for this simple development environment
     try:
         with app.app_context():
-            from sqlalchemy import inspect
+            from sqlalchemy import inspect, text
             inspector = inspect(db.engine)
             tables = inspector.get_table_names()
+            
+            # Fix PostgreSQL sequences after migration
+            if database_url and 'postgresql' in database_url:
+                try:
+                    for table in ['user', 'course', 'user_course', 'asistencia', 'justificativo', 'historial_asistencia', 'detalle_asistencia', 'log_asistencia']:
+                        db.session.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE(MAX(id), 1)) FROM {table}"))
+                    db.session.commit()
+                    print('✅ Secuencias PostgreSQL sincronizadas')
+                except Exception as e:
+                    print(f'⚠️ Error sincronizando secuencias: {e}')
             
             if 'user' not in tables:
                 print('📦 Creando tablas...')
