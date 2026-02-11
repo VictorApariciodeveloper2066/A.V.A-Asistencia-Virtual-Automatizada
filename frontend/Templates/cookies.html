@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Política de Cookies - AVA</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/imgs/Leon1.png') }}" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { primary: "#39E079", "background-dark": "#122017" },
+                    fontFamily: { display: "Lexend" }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-display bg-background-dark text-gray-200">
+    <div class="max-w-4xl mx-auto px-4 py-16">
+        <a href="{{ url_for('front.index') }}" class="text-primary hover:underline mb-8 inline-block">← Volver al inicio</a>
+        <h1 class="text-4xl font-bold text-white mb-8">Política de Cookies</h1>
+        <p class="text-gray-400 mb-8">Última actualización: Enero 2025</p>
+        
+        <div class="space-y-8 text-gray-300">
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">¿Qué son las Cookies?</h2>
+                <p>Las cookies son pequeños archivos de texto que se almacenan en tu dispositivo cuando visitas un sitio web. Nos ayudan a mejorar tu experiencia y mantener tu sesión activa.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">Cookies que Utilizamos</h2>
+                
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-2">Cookies Esenciales</h3>
+                    <p class="mb-2">Necesarias para el funcionamiento básico de la plataforma:</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>session:</strong> Mantiene tu sesión activa mientras usas AVA</li>
+                        <li><strong>csrf_token:</strong> Protege contra ataques de seguridad</li>
+                    </ul>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-2">Cookies de Preferencias</h3>
+                    <p class="mb-2">Recuerdan tus preferencias:</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>theme:</strong> Guarda tu preferencia de tema (claro/oscuro)</li>
+                        <li><strong>language:</strong> Recuerda tu idioma preferido</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">Duración de las Cookies</h2>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Cookies de sesión:</strong> Se eliminan cuando cierras el navegador</li>
+                    <li><strong>Cookies persistentes:</strong> Permanecen hasta 30 días para recordar tus preferencias</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">Control de Cookies</h2>
+                <p class="mb-4">Puedes controlar las cookies a través de:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Configuración de tu navegador (Chrome, Firefox, Safari, etc.)</li>
+                    <li>Eliminar cookies existentes en cualquier momento</li>
+                    <li>Bloquear cookies futuras (puede afectar la funcionalidad)</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">Cookies de Terceros</h2>
+                <p>AVA no utiliza cookies de terceros para publicidad o seguimiento. Solo usamos cookies esenciales para el funcionamiento de la plataforma.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">Actualizaciones</h2>
+                <p>Esta política puede actualizarse ocasionalmente. Te notificaremos sobre cambios significativos.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">Contacto</h2>
+                <p>Para preguntas sobre cookies, contacta a: <a href="mailto:soporte@ava.edu" class="text-primary hover:underline">soporte@ava.edu</a></p>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

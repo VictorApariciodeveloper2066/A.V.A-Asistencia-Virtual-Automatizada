@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Configuración - AVA</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/imgs/Leon1.png') }}" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#39E079",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122017"
+                    },
+                    fontFamily: { display: "Lexend" }
+                }
+            }
+        };
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200">
+    <div class="flex min-h-screen">
+        <aside class="w-20 lg:w-64 flex-shrink-0 bg-white dark:bg-background-dark dark:border-r dark:border-gray-800 flex flex-col">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-3 justify-center lg:justify-start">
+                    <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold border-2 border-primary/20">
+                        {{ user.primer_nombre[0] if user.primer_nombre else user.username[0] }}{{ user.primer_apellido[0] if user.primer_apellido else '' }}
+                    </div>
+                    <div class="hidden lg:flex flex-col">
+                        <h1 class="text-gray-900 dark:text-white text-base font-medium">
+                            {{ user.primer_nombre or user.username }} {{ user.primer_apellido or '' }}
+                        </h1>
+                        <p class="text-gray-500 dark:text-gray-400 text-xs">
+                            {% if user.role == 'teacher' %}Profesor{% else %}{{ user.career or 'Estudiante' }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 px-2 py-4 space-y-1">
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg" href="{{ url_for('front.dashboard') }}">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                    <span class="hidden lg:inline text-sm font-medium">Mi Horario</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg" href="{{ url_for('front.historial_alumno') }}">
+                    <span class="material-symbols-outlined">history</span>
+                    <span class="hidden lg:inline text-sm font-medium">Historial</span>
+                </a>
+            </nav>
+            <div class="px-2 py-4 mt-auto border-t border-gray-200 dark:border-gray-800">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary dark:bg-primary/20" href="#">
+                    <span class="material-symbols-outlined fill">settings</span>
+                    <span class="hidden lg:inline text-sm font-medium">Configuración</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-1" href="{{ url_for('auth.logout') }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="hidden lg:inline text-sm font-medium">Cerrar Sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-4 lg:p-8 overflow-y-auto">
+            <div class="max-w-4xl mx-auto">
+                <header class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Configuración</h1>
+                    <p class="text-gray-500 dark:text-gray-400">Personaliza tu experiencia en AVA</p>
+                </header>
+
+                <!-- Sección: Datos Personales -->
+                <section class="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">person</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Datos Personales</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Actualiza tu información personal</p>
+                        </div>
+                    </div>
+                    <form id="form-perfil" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Primer Nombre</label>
+                                <input type="text" id="primer_nombre" value="{{ user.primer_nombre or '' }}" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary/50" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Primer Apellido</label>
+                                <input type="text" id="primer_apellido" value="{{ user.primer_apellido or '' }}" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary/50" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Email</label>
+                            <input type="email" id="email" value="{{ user.email }}" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary/50" />
+                        </div>
+                        {% if user.role == 'student' %}
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Carrera</label>
+                            <input type="text" value="{{ user.career or 'No especificada' }}" disabled class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed" />
+                            <p class="text-xs text-gray-500 mt-1">La carrera no puede ser modificada</p>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Cédula</label>
+                            <input type="text" value="{{ user.ci or 'No especificada' }}" disabled class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed" />
+                            <p class="text-xs text-gray-500 mt-1">La cédula no puede ser modificada</p>
+                        </div>
+                        <button type="submit" class="w-full md:w-auto px-6 py-2 bg-primary text-background-dark font-bold rounded-lg hover:brightness-110 transition-all">
+                            Guardar Cambios
+                        </button>
+                    </form>
+                </section>
+
+<!-- Sección: Seguridad -->
+                <section class="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">lock</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Seguridad</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Cambia tu contraseña</p>
+                        </div>
+                    </div>
+                    <form id="form-password" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Contraseña Actual</label>
+                            <input type="password" id="current_password" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary/50" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Nueva Contraseña</label>
+                            <input type="password" id="new_password" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary/50" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Confirmar Nueva Contraseña</label>
+                            <input type="password" id="confirm_password" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary/50" />
+                        </div>
+                        <button type="submit" class="w-full md:w-auto px-6 py-2 bg-primary text-background-dark font-bold rounded-lg hover:brightness-110 transition-all">
+                            Cambiar Contraseña
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Sección: Notificaciones -->
+                <section class="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">notifications</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Notificaciones</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Gestiona tus alertas por email</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <div>
+                            <p class="font-medium">Notificaciones por Email</p>
+                            <p class="text-sm text-gray-500">Recibe alertas de asistencia y actualizaciones</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="notificaciones-toggle" {{ 'checked' if user.notificaciones_activas else '' }} class="sr-only peer" onchange="actualizarNotificaciones(this.checked)">
+                            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Sección: Preferencias -->
+                <section class="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">tune</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Preferencias</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Personaliza la interfaz</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Formato de Hora</label>
+                            <select id="formato-hora" onchange="actualizarFormatoHora(this.value)" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary/50">
+                                <option value="12h" {{ 'selected' if user.formato_hora == '12h' else '' }}>12 horas (3:45 PM)</option>
+                                <option value="24h" {{ 'selected' if user.formato_hora == '24h' else '' }}>24 horas (15:45)</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sección: Gestionar Cursos -->
+                <section class="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">school</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                                {% if user.role == 'teacher' %}Materias que Administro{% else %}Mis Cursos{% endif %}
+                            </h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                {% if user.role == 'teacher' %}Selecciona las materias que impartes{% else %}Gestiona tus materias inscritas{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <form id="form-cursos" class="space-y-3">
+                        {% for course in all_courses %}
+                        <label class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                            <input type="checkbox" name="courses" value="{{ course.id }}" {{ 'checked' if course.id in user_course_ids else '' }} class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
+                            <div class="flex-1">
+                                <p class="font-medium">{{ course.name }}</p>
+                                <p class="text-xs text-gray-500">{{ course.aula or 'Sin aula asignada' }}</p>
+                            </div>
+                        </label>
+                        {% endfor %}
+                        <button type="submit" class="w-full md:w-auto px-6 py-2 bg-primary text-background-dark font-bold rounded-lg hover:brightness-110 transition-all mt-4">
+                            {% if user.role == 'teacher' %}Actualizar Materias{% else %}Actualizar Cursos{% endif %}
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Sección: Zona Peligrosa -->
+                <section class="bg-red-50 dark:bg-red-900/10 rounded-xl border-2 border-red-200 dark:border-red-900/50 p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="size-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
+                            <span class="material-symbols-outlined">warning</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-red-900 dark:text-red-400">Zona Peligrosa</h2>
+                            <p class="text-sm text-red-700 dark:text-red-500">Acciones irreversibles</p>
+                        </div>
+                    </div>
+                    <button onclick="confirmarEliminacion()" class="px-6 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-all">
+                        Eliminar Cuenta
+                    </button>
+                    <p class="text-xs text-red-700 dark:text-red-500 mt-2">Esta acción no se puede deshacer</p>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Actualizar perfil
+        document.getElementById('form-perfil').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                primer_nombre: document.getElementById('primer_nombre').value,
+                primer_apellido: document.getElementById('primer_apellido').value,
+                email: document.getElementById('email').value
+            };
+            const res = await fetch('/auth/actualizar_perfil', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            alert(result.message || result.error);
+            if (res.ok) location.reload();
+        });
+
+        // Cambiar contraseña
+        document.getElementById('form-password').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const current = document.getElementById('current_password').value;
+            const newPass = document.getElementById('new_password').value;
+            const confirm = document.getElementById('confirm_password').value;
+            if (newPass !== confirm) {
+                alert('Las contraseñas no coinciden');
+                return;
+            }
+            const res = await fetch('/auth/cambiar_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_password: current, new_password: newPass })
+            });
+            const result = await res.json();
+            alert(result.message || result.error);
+            if (res.ok) {
+                document.getElementById('form-password').reset();
+            }
+        });
+
+        // Actualizar notificaciones
+        async function actualizarNotificaciones(activas) {
+            const res = await fetch('/auth/actualizar_notificaciones', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notificaciones_activas: activas })
+            });
+            const result = await res.json();
+            if (!res.ok) alert(result.error);
+        }
+
+        // Actualizar formato de hora
+        async function actualizarFormatoHora(formato) {
+            const res = await fetch('/auth/actualizar_formato_hora', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ formato_hora: formato })
+            });
+            const result = await res.json();
+            if (!res.ok) alert(result.error);
+        }
+
+        // Gestionar cursos
+        const formCursos = document.getElementById('form-cursos');
+        if (formCursos) {
+            formCursos.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const checkboxes = document.querySelectorAll('input[name="courses"]:checked');
+                const courses = Array.from(checkboxes).map(cb => cb.value);
+                const res = await fetch('/auth/gestionar_cursos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courses })
+                });
+                const result = await res.json();
+                alert(result.message || result.error);
+                if (res.ok) location.reload();
+            });
+        }
+
+        // Eliminar cuenta
+        async function confirmarEliminacion() {
+            if (!confirm('¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.')) return;
+            const password = prompt('Ingresa tu contraseña para confirmar:');
+            if (!password) return;
+            const res = await fetch('/auth/eliminar_cuenta', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            const result = await res.json();
+            alert(result.message || result.error);
+            if (res.ok) window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

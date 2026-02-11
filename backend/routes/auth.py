@@ -11,8 +11,20 @@ from backend.extensions import mail
 import traceback
 import os
 from werkzeug.utils import secure_filename
+from authlib.integrations.flask_client import OAuth
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+oauth = OAuth()
+
+def init_oauth(app):
+    oauth.init_app(app)
+    oauth.register(
+        name='google',
+        client_id=app.config.get('GOOGLE_CLIENT_ID'),
+        client_secret=app.config.get('GOOGLE_CLIENT_SECRET'),
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={'scope': 'openid email profile'}
+    )
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -571,3 +583,195 @@ def actualizar_aula():
     db.session.commit()
     
     return jsonify({"message": "Aula actualizada", "aula": course.aula}), 200
+
+
+@auth_bp.route('/google/login')
+def google_login():
+    redirect_uri = url_for('auth.google_callback', _external=True)
+    print(f"DEBUG: Redirect URI being used: {redirect_uri}")
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
+@auth_bp.route('/google/callback')
+def google_callback():
+    try:
+        token = oauth.google.authorize_access_token()
+        user_info = token.get('userinfo')
+        
+        if not user_info:
+            return redirect(url_for('front.register_page'))
+        
+        email = user_info.get('email')
+        name = user_info.get('name', email.split('@')[0])
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            user = User(username=name, email=email)
+            user.set_password(secrets.token_urlsafe(16))
+            db.session.add(user)
+            db.session.commit()
+        
+        session['username'] = user.username
+        return redirect(url_for('front.dashboard'))
+    
+    except Exception as e:
+        print(f"Error en Google OAuth: {e}")
+        return redirect(url_for('front.register_page'))
+
+
+@auth_bp.route('/complete_profile', methods=['POST'])
+def complete_profile():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    
+    data = request.get_json() or {}
+    
+    # Actualizar datos del usuario
+    user.primer_nombre = data.get('primer_nombre', '').strip()
+    user.primer_apellido = data.get('primer_apellido', '').strip()
+    user.ci = data.get('ci', '').strip()
+    user.career = data.get('career', '').strip() if user.role == 'student' else 'Profesor'
+    
+    if not all([user.primer_nombre, user.primer_apellido, user.ci]):
+        return jsonify({"error": "Nombre, apellido y cédula son requeridos"}), 400
+    
+    if user.role == 'student' and not user.career:
+        return jsonify({"error": "La carrera es requerida para estudiantes"}), 400
+    
+    # Inscribir en materias seleccionadas
+    course_ids = data.get('courses', [])
+    if not course_ids:
+        return jsonify({"error": "Debes seleccionar al menos una materia"}), 400
+    
+    # Eliminar inscripciones anteriores
+    User_course.query.filter_by(user_id=user.id).delete()
+    
+    # Agregar nuevas inscripciones
+    for course_id in course_ids:
+        inscripcion = User_course(user_id=user.id, course_id=int(course_id))
+        db.session.add(inscripcion)
+    
+    db.session.commit()
+    
+    return jsonify({"message": "Perfil completado exitosamente"}), 200
+
+
+@auth_bp.route('/actualizar_perfil', methods=['POST'])
+def actualizar_perfil():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    data = request.get_json() or {}
+    user.primer_nombre = data.get('primer_nombre', user.primer_nombre)
+    user.primer_apellido = data.get('primer_apellido', user.primer_apellido)
+    user.email = data.get('email', user.email)
+    db.session.commit()
+    return jsonify({"message": "Perfil actualizado"}), 200
+
+
+@auth_bp.route('/cambiar_password', methods=['POST'])
+def cambiar_password():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    data = request.get_json() or {}
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    if not user.check_password(current_password):
+        return jsonify({"error": "Contraseña actual incorrecta"}), 400
+    user.set_password(new_password)
+    db.session.commit()
+    return jsonify({"message": "Contraseña actualizada"}), 200
+
+
+@auth_bp.route('/actualizar_notificaciones', methods=['POST'])
+def actualizar_notificaciones():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    data = request.get_json() or {}
+    user.notificaciones_activas = data.get('notificaciones_activas', True)
+    db.session.commit()
+    return jsonify({"message": "Notificaciones actualizadas"}), 200
+
+
+@auth_bp.route('/actualizar_formato_hora', methods=['POST'])
+def actualizar_formato_hora():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    data = request.get_json() or {}
+    user.formato_hora = data.get('formato_hora', '12h')
+    db.session.commit()
+    return jsonify({"message": "Formato de hora actualizado"}), 200
+
+
+@auth_bp.route('/subir_avatar', methods=['POST'])
+def subir_avatar():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    archivo = request.files.get('avatar')
+    if not archivo:
+        return jsonify({"error": "No se envió archivo"}), 400
+    filename = secure_filename(archivo.filename)
+    upload_folder = os.path.join(current_app.root_path, 'frontend', 'static', 'uploads', 'avatars')
+    os.makedirs(upload_folder, exist_ok=True)
+    avatar_nombre = f"{user.id}_{int(datetime.now().timestamp())}_{filename}"
+    archivo.save(os.path.join(upload_folder, avatar_nombre))
+    user.avatar_url = f"/static/uploads/avatars/{avatar_nombre}"
+    db.session.commit()
+    return jsonify({"message": "Avatar actualizado", "avatar_url": user.avatar_url}), 200
+
+
+@auth_bp.route('/gestionar_cursos', methods=['POST'])
+def gestionar_cursos():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    data = request.get_json() or {}
+    course_ids = data.get('courses', [])
+    User_course.query.filter_by(user_id=user.id).delete()
+    for course_id in course_ids:
+        inscripcion = User_course(user_id=user.id, course_id=int(course_id))
+        db.session.add(inscripcion)
+    db.session.commit()
+    return jsonify({"message": "Cursos actualizados"}), 200
+
+
+@auth_bp.route('/eliminar_cuenta', methods=['POST'])
+def eliminar_cuenta():
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    data = request.get_json() or {}
+    password = data.get('password')
+    if not user.check_password(password):
+        return jsonify({"error": "Contraseña incorrecta"}), 400
+    User_course.query.filter_by(user_id=user.id).delete()
+    Asistencia.query.filter_by(user_id=user.id).delete()
+    Justificativo.query.filter_by(user_id=user.id).delete()
+    DetalleAsistencia.query.filter_by(user_id=user.id).delete()
+    db.session.delete(user)
+    db.session.commit()
+    session.pop('username', None)
+    return jsonify({"message": "Cuenta eliminada"}), 200

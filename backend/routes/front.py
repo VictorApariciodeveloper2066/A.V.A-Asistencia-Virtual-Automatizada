@@ -23,6 +23,20 @@ def dashboard():
         return redirect(url_for('front.index'))
     if user.role not in ('student', 'teacher'):
         return redirect(url_for('front.predashboard'))
+    
+    # Verificar si el perfil está completo
+    if not user.primer_nombre or not user.primer_apellido or not user.ci:
+        return redirect(url_for('front.completar_perfil'))
+    
+    # Para estudiantes, verificar que tengan carrera
+    if user.role == 'student' and not user.career:
+        return redirect(url_for('front.completar_perfil'))
+    
+    # Verificar si tiene materias inscritas
+    if user.role == 'student':
+        tiene_materias = db.session.query(User_course).filter_by(user_id=user.id).first()
+        if not tiene_materias:
+            return redirect(url_for('front.completar_perfil'))
     # Query courses associated with this user
     courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == user.id).all()
 
@@ -31,14 +45,26 @@ def dashboard():
     slots_by_day = {i: [] for i in range(1, 8)}
     now = datetime.now()
     current_time = now.time()
+    
+    # Obtener formato de hora del usuario (por defecto 12h)
+    time_format = user.formato_hora if hasattr(user, 'formato_hora') and user.formato_hora else '12h'
+    
     for c in courses:
+        # Formatear horas según preferencia del usuario
+        if time_format == '24h':
+            start_time_str = c.start_time.strftime('%H:%M') if c.start_time else ''
+            end_time_str = c.end_time.strftime('%H:%M') if c.end_time else ''
+        else:  # 12h
+            start_time_str = c.start_time.strftime('%I:%M %p') if c.start_time else ''
+            end_time_str = c.end_time.strftime('%I:%M %p') if c.end_time else ''
+        
         item = {
             'id': c.id,
             'name': c.name,
             'aula': c.aula,
             'dia': c.dia,
-            'start_time': c.start_time.strftime('%H:%M') if c.start_time else '',
-            'end_time': c.end_time.strftime('%H:%M') if c.end_time else ''
+            'start_time': start_time_str,
+            'end_time': end_time_str
         }
         # Show attendance button only when today is the course day and current time is within start/end
         can_mark = False
@@ -504,6 +530,31 @@ def predashboard():
         return redirect(url_for('front.dashboard'))
     return render_template('Predashboard.html')
 
+@front_bp.route('/privacidad')
+def privacidad():
+    return render_template('privacidad.html')
+
+@front_bp.route('/terminos')
+def terminos():
+    return render_template('terminos.html')
+
+@front_bp.route('/cookies')
+def cookies():
+    return render_template('cookies.html')
+
+@front_bp.route('/completar_perfil')
+def completar_perfil():
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return redirect(url_for('front.login_page'))
+    
+    # Obtener todas las materias (todas son de Ingeniería en Sistemas)
+    courses = Course.query.all()
+    
+    return render_template('completar_perfil.html', user=user, courses=courses)
+
 @front_bp.route('/set_role', methods=['POST'])
 def set_role():
     if 'username' not in session:
@@ -518,3 +569,18 @@ def set_role():
         user.role = role
         db.session.commit()
     return redirect(url_for('front.dashboard'))
+
+@front_bp.route('/configuracion')
+def configuracion():
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    user = User.query.filter_by(username=session['username']).first()
+    if not user:
+        return redirect(url_for('front.login_page'))
+    
+    # Obtener cursos disponibles y cursos del usuario
+    all_courses = Course.query.all()
+    user_courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == user.id).all()
+    user_course_ids = [c.id for c in user_courses]
+    
+    return render_template('configuration.html', user=user, all_courses=all_courses, user_course_ids=user_course_ids)

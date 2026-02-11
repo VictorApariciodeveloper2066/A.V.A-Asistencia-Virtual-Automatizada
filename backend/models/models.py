@@ -14,6 +14,9 @@ class User(db.Model):
     primer_nombre = db.Column(db.String(100), nullable=True)
     primer_apellido = db.Column(db.String(100), nullable=True)
     ci = db.Column(db.String(20), nullable=True)
+    avatar_url = db.Column(db.String(255), nullable=True)
+    notificaciones_activas = db.Column(db.Boolean, default=True)
+    formato_hora = db.Column(db.String(10), default='12h')
 
     def set_password(self, password):
         self.password = generate_password_hash(password)

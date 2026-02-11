@@ -130,10 +130,10 @@
                                         class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
                                         <span class="material-symbols-outlined text-[20px]">lock</span>
                                     </span>
-                                    <input name="password"
+                                    <input name="password" id="password-field"
                                         class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-10 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all"
                                         placeholder="••••••••" type="password" />
-                                    <button
+                                    <button id="toggle-password"
                                         class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary hover:text-slate-600 dark:hover:text-white"
                                         type="button">
                                         <span class="material-symbols-outlined text-[20px]">visibility_off</span>
@@ -148,7 +148,7 @@
                                         class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-secondary">
                                         <span class="material-symbols-outlined text-[20px]">lock_reset</span>
                                     </span>
-                                    <input name="password_confirm"
+                                    <input name="password_confirm" id="password-confirm-field"
                                         class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-border-dark bg-slate-50 dark:bg-surface-dark focus:border-primary h-12 pl-11 pr-4 placeholder:text-slate-400 dark:placeholder:text-text-secondary/70 text-sm font-normal leading-normal transition-all"
                                         placeholder="••••••••" type="password" />
                                 </div>
@@ -163,12 +163,12 @@
                             <label class="text-sm font-normal leading-tight text-slate-600 dark:text-text-secondary"
                                 for="terms">
                                 Acepto los <a class="font-medium text-slate-900 dark:text-primary hover:underline"
-                                    href="#">Términos de servicio</a> y la <a
+                                    href="{{ url_for('front.terminos') }}" target="_blank">Términos de servicio</a> y la <a
                                     class="font-medium text-slate-900 dark:text-primary hover:underline"
-                                    href="#">Política de privacidad</a>
+                                    href="{{ url_for('front.privacidad') }}" target="_blank">Política de privacidad</a>
                             </label>
                         </div>
-                        <button id="register-submit" type="button" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-primary hover:bg-emerald-400 text-[#122118] text-base font-bold leading-normal tracking-[0.015em] transition-all shadow-lg shadow-primary/20">
+                        <button id="register-submit" type="button" disabled class="flex w-full cursor-not-allowed items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-gray-400 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-base font-bold leading-normal tracking-[0.015em] transition-all opacity-50">
                             <span class="truncate">Crear cuenta</span>
                         </button>
                         <div class="relative flex py-1 items-center">
@@ -178,7 +178,7 @@
                                 regístrate con</span>
                             <div class="flex-grow border-t border-slate-200 dark:border-border-dark"></div>
                         </div>
-                        <button
+                        <button id="google-register"
                             class="flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-lg h-12 px-4 bg-white dark:bg-transparent border border-slate-200 dark:border-border-dark hover:bg-slate-50 dark:hover:bg-surface-dark text-slate-700 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-all"
                             type="button">
                             <img alt="Google Logo" class="w-5 h-5" data-alt="Google G logo"
@@ -191,16 +191,46 @@
                 <!-- Footer links -->
                 <div class="mt-8 flex justify-center gap-6">
                     <a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors"
-                        href="#">Centro de ayuda</a>
+                        href="{{ url_for('front.privacidad') }}">Privacidad</a>
                     <a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors"
-                        href="#">Privacidad</a>
-                    <a class="text-xs text-slate-500 dark:text-text-secondary/60 hover:text-slate-800 dark:hover:text-white transition-colors"
-                        href="#">Términos</a>
+                        href="{{ url_for('front.terminos') }}">Términos</a>
                 </div>
             </div>
         </main>
     </div>
                 <script>
+                    // Toggle password visibility
+                    document.getElementById('toggle-password').addEventListener('click', function() {
+                        const passwordField = document.getElementById('password-field');
+                        const icon = this.querySelector('.material-symbols-outlined');
+                        if (passwordField.type === 'password') {
+                            passwordField.type = 'text';
+                            icon.textContent = 'visibility';
+                        } else {
+                            passwordField.type = 'password';
+                            icon.textContent = 'visibility_off';
+                        }
+                    });
+
+                    // Habilitar/deshabilitar botón según checkbox de términos
+                    document.getElementById('terms').addEventListener('change', function() {
+                        const btn = document.getElementById('register-submit');
+                        if (this.checked) {
+                            btn.disabled = false;
+                            btn.classList.remove('cursor-not-allowed', 'bg-gray-400', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-400', 'opacity-50');
+                            btn.classList.add('cursor-pointer', 'bg-primary', 'hover:bg-emerald-400', 'text-[#122118]', 'shadow-lg', 'shadow-primary/20');
+                        } else {
+                            btn.disabled = true;
+                            btn.classList.add('cursor-not-allowed', 'bg-gray-400', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-400', 'opacity-50');
+                            btn.classList.remove('cursor-pointer', 'bg-primary', 'hover:bg-emerald-400', 'text-[#122118]', 'shadow-lg', 'shadow-primary/20');
+                        }
+                    });
+
+                    // Google register
+                    document.getElementById('google-register').addEventListener('click', function() {
+                        window.location.href = "{{ url_for('auth.google_login') }}";
+                    });
+
                     (function(){
                         const form = document.getElementById('register_form');
                         const errorBox = document.getElementById('register-error');
@@ -213,6 +243,15 @@
 
                         btn.addEventListener('click', async function(e){
                             e.preventDefault();
+                            
+                            // Verificar que los términos estén aceptados
+                            const termsCheckbox = document.getElementById('terms');
+                            if (!termsCheckbox.checked) {
+                                errorBox.textContent = 'Debes aceptar los términos y condiciones';
+                                errorBox.style.display = 'block';
+                                return;
+                            }
+                            
                             errorBox.style.display = 'none';
                             const username = (form.querySelector('input[name="username"]') || {}).value || '';
                             const password = (form.querySelector('input[name="password"]') || {}).value || '';

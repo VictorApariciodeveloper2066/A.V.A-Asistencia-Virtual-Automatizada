@@ -49,6 +49,16 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{instance_db_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # Google OAuth configuration
+    app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
+    app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
+    
+    # Debug: verificar que las credenciales se cargaron
+    if not app.config['GOOGLE_CLIENT_ID'] or not app.config['GOOGLE_CLIENT_SECRET']:
+        print("WARNING: Google OAuth credentials not found in .env file")
+    else:
+        print(f"Google OAuth configured with client ID: {app.config['GOOGLE_CLIENT_ID'][:20]}...")
+
     # Ensure mail defaults come from env or config.default
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', app.config.get('MAIL_SERVER', 'smtp.gmail.com'))
     app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', app.config.get('MAIL_PORT', 587)))
@@ -89,6 +99,10 @@ def create_app():
 
     app.register_blueprint(front_bp)
     app.register_blueprint(auth_bp)
+    
+    # Initialize OAuth
+    from backend.routes.auth import init_oauth
+    init_oauth(app)
 
     return app
 

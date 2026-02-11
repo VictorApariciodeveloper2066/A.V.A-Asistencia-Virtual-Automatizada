@@ -115,14 +115,14 @@
                                 class="text-gray-700 dark:text-white text-sm font-medium leading-normal">Contraseña</label>
                         </div>
                         <div class="relative flex items-center">
-                            <input
+                            <input id="password-field"
                                 class="w-full h-12 rounded-lg pl-11 pr-11 text-gray-900 dark:text-white bg-gray-50 dark:bg-input-bg border border-gray-300 dark:border-input-border focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-gray-400 dark:placeholder:text-[#5a8069] transition-all duration-200 outline-none text-base"
                                 placeholder="••••••••" type="password" name="password" />
                             <div
                                 class="absolute left-3.5 flex items-center justify-center text-gray-400 dark:text-[#5a8069] pointer-events-none">
                                 <span class="material-symbols-outlined text-[20px]">lock</span>
                             </div>
-                            <button
+                            <button id="toggle-password"
                                 class="absolute right-3.5 flex items-center justify-center text-gray-400 dark:text-[#5a8069] hover:text-gray-600 dark:hover:text-primary transition-colors cursor-pointer"
                                 type="button">
                                 <span class="material-symbols-outlined text-[20px]">visibility_off</span>
@@ -160,6 +160,19 @@
         </div>
     </div>
     <script>
+        // Toggle password visibility
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const passwordField = document.getElementById('password-field');
+            const icon = this.querySelector('.material-symbols-outlined');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                passwordField.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        });
+
         (function(){
             const form = document.getElementById('auth-form');
             const errorBox = document.getElementById('login-error');

@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Selección de Rol (Asistencia Virtual)</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/imgs/Leon1.png') }}" />
 <!-- Fuentes -->
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -60,7 +61,7 @@
         <!-- Cabecera: icono, título y descripción -->
         <div class="text-center mb-10">
             <div class="inline-flex items-center justify-center p-3 mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                <span class="material-symbols-outlined text-primary text-3xl">school</span>
+                <img src="{{ url_for('static', filename='assets/imgs/Leon1.png') }}" alt="Logo AVA" class="w-8 h-8" />
                 <span class="ml-2 font-bold text-gray-900 dark:text-white text-xl">Asistencia Virtual</span>
             </div>
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">Selecciona tu perfil</h1>
@@ -123,8 +124,8 @@
         <div class="mt-12 text-center">
             <p class="text-sm text-gray-400 dark:text-gray-500">
                 Al continuar, aceptas nuestros 
-                <a class="underline hover:text-gray-600 dark:hover:text-gray-300" href="#">Términos de Servicio</a> y 
-                <a class="underline hover:text-gray-600 dark:hover:text-gray-300" href="#">Política de Privacidad</a>.
+                <a class="underline hover:text-gray-600 dark:hover:text-gray-300" href="{{ url_for('front.terminos') }}" target="_blank">Términos de Servicio</a> y 
+                <a class="underline hover:text-gray-600 dark:hover:text-gray-300" href="{{ url_for('front.privacidad') }}" target="_blank">Política de Privacidad</a>.
             </p>
         </div>
 

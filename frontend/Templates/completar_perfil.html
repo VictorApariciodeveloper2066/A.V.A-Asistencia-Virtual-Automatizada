@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Completa tu Perfil - AVA</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/imgs/Leon1.png') }}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#39E079",
+                        "background-dark": "#122017",
+                        "surface-dark": "#1b3124",
+                        "border-dark": "#366347"
+                    },
+                    fontFamily: { display: "Lexend" }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-display bg-background-dark text-white min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <div class="bg-surface-dark/50 rounded-xl border border-border-dark p-8 shadow-xl">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-primary/20 rounded-2xl mx-auto flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-4xl text-primary">person_add</span>
+                </div>
+                <h1 class="text-3xl font-bold mb-2">Completa tu Perfil</h1>
+                <p class="text-gray-400">Necesitamos algunos datos para personalizar tu experiencia</p>
+            </div>
+
+            <form id="profile-form" class="space-y-6">
+                <div id="error-box" class="hidden rounded-lg px-4 py-3 text-sm text-red-300 bg-red-900/30 border border-red-700"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Primer Nombre *</label>
+                        <input name="primer_nombre" type="text" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"
+                            class="w-full px-4 py-3 rounded-lg bg-background-dark border border-border-dark text-white focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                            placeholder="Juan"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Primer Apellido *</label>
+                        <input name="primer_apellido" type="text" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"
+                            class="w-full px-4 py-3 rounded-lg bg-background-dark border border-border-dark text-white focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                            placeholder="Pérez"/>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">Cédula de Identidad *</label>
+                    <div class="flex items-center gap-2">
+                        <span class="px-4 py-3 rounded-lg bg-background-dark border border-border-dark text-gray-400">V-</span>
+                        <input name="ci" type="text" required pattern="^\d{8}$" maxlength="8" inputmode="numeric"
+                            class="flex-1 px-4 py-3 rounded-lg bg-background-dark border border-border-dark text-white focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                            placeholder="12345678"/>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Solo números (8 dígitos)</p>
+                </div>
+
+                {% if user.role == 'student' %}
+                <div>
+                    <label class="block text-sm font-medium mb-2">Carrera *</label>
+                    <select name="career" required
+                        class="w-full px-4 py-3 rounded-lg bg-background-dark border border-border-dark text-white focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                        <option value="">Selecciona tu carrera</option>
+                        <option value="Ingeniería en Sistemas">Ingeniería en Sistemas</option>
+                    </select>
+                </div>
+                {% endif %}
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">{% if user.role == 'teacher' %}Materias que Administro *{% else %}Materias *{% endif %}</label>
+                    <p class="text-sm text-gray-400 mb-3">{% if user.role == 'teacher' %}Selecciona las materias que impartes{% else %}Selecciona las materias en las que estás inscrito{% endif %}</p>
+                    <div id="courses-list" class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for course in courses %}
+                        <label class="flex items-center p-3 rounded-lg bg-background-dark border border-border-dark hover:border-primary/50 cursor-pointer transition-colors">
+                            <input type="checkbox" name="courses" value="{{ course.id }}"
+                                class="w-4 h-4 text-primary bg-background-dark border-border-dark rounded focus:ring-primary focus:ring-2"/>
+                            <span class="ml-3 text-sm">{{ course.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn"
+                    class="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-background-dark font-bold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    Completar Perfil
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('profile-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const errorBox = document.getElementById('error-box');
+            const submitBtn = document.getElementById('submit-btn');
+            errorBox.classList.add('hidden');
+
+            const formData = new FormData(e.target);
+            const selectedCourses = Array.from(formData.getAll('courses'));
+            
+            if (selectedCourses.length === 0) {
+                errorBox.textContent = 'Debes seleccionar al menos una materia';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            const data = {
+                primer_nombre: formData.get('primer_nombre'),
+                primer_apellido: formData.get('primer_apellido'),
+                ci: 'V-' + formData.get('ci'),
+                career: formData.get('career') || 'Profesor',
+                courses: selectedCourses
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Guardando...';
+
+            try {
+                const res = await fetch("{{ url_for('auth.complete_profile') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    window.location.href = "{{ url_for('front.dashboard') }}";
+                } else {
+                    errorBox.textContent = result.error || 'Error al guardar el perfil';
+                    errorBox.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Completar Perfil';
+                }
+            } catch (err) {
+                errorBox.textContent = 'Error de red. Intenta nuevamente.';
+                errorBox.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Completar Perfil';
+            }
+        });
+    </script>
+</body>
+</html>

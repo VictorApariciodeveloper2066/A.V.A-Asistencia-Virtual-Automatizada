@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Política de Privacidad - AVA</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/imgs/Leon1.png') }}" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { primary: "#39E079", "background-dark": "#122017" },
+                    fontFamily: { display: "Lexend" }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-display bg-background-dark text-gray-200">
+    <div class="max-w-4xl mx-auto px-4 py-16">
+        <a href="{{ url_for('front.index') }}" class="text-primary hover:underline mb-8 inline-block">← Volver al inicio</a>
+        <h1 class="text-4xl font-bold text-white mb-8">Política de Privacidad</h1>
+        <p class="text-gray-400 mb-8">Última actualización: Enero 2025</p>
+        
+        <div class="space-y-8 text-gray-300">
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">1. Información que Recopilamos</h2>
+                <p class="mb-4">En AVA recopilamos la siguiente información:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Datos de registro:</strong> Nombre, apellido, correo electrónico, cédula de identidad, carrera</li>
+                    <li><strong>Datos académicos:</strong> Asistencia a clases, justificativos, historial académico</li>
+                    <li><strong>Datos de uso:</strong> Interacciones con la plataforma, horarios de acceso</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">2. Uso de la Información</h2>
+                <p class="mb-4">Utilizamos tu información para:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Gestionar el registro de asistencia académica</li>
+                    <li>Generar reportes y estadísticas para profesores</li>
+                    <li>Facilitar la comunicación entre estudiantes y profesores</li>
+                    <li>Mejorar la experiencia del usuario en la plataforma</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">3. Protección de Datos</h2>
+                <p>Implementamos medidas de seguridad para proteger tu información personal. Los datos se almacenan de forma segura y solo el personal autorizado tiene acceso a ellos.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">4. Compartir Información</h2>
+                <p>No compartimos tu información personal con terceros, excepto cuando sea necesario para el funcionamiento académico (profesores accediendo a datos de sus estudiantes).</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">5. Tus Derechos</h2>
+                <p class="mb-4">Tienes derecho a:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Acceder a tu información personal</li>
+                    <li>Solicitar corrección de datos incorrectos</li>
+                    <li>Solicitar eliminación de tu cuenta</li>
+                    <li>Exportar tus datos académicos</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-4">6. Contacto</h2>
+                <p>Para consultas sobre privacidad, contacta a: <a href="mailto:privacidad@ava.edu" class="text-primary hover:underline">privacidad@ava.edu</a></p>
+            </section>
+        </div>
+    </div>
+</body>
+</html>
