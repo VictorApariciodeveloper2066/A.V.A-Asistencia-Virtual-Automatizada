@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Gestionar Comandantes</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/imgs/Leon1.png') }}" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#39E079",
+                        "background-dark": "#0A1A11",
+                        "forest": "#122017",
+                        "forest-card": "#12261B"
+                    },
+                    fontFamily: { display: "Lexend" }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-display bg-background-dark text-gray-200">
+    <div class="flex min-h-screen">
+        <aside class="w-20 lg:w-64 flex-shrink-0 bg-forest border-r border-white/5 flex flex-col">
+            <div class="p-4 border-b border-white/5">
+                <div class="flex items-center gap-3 justify-center lg:justify-start">
+                    <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold border-2 border-primary/20">
+                        {{ user.primer_nombre[0] }}{{ user.primer_apellido[0] }}
+                    </div>
+                    <div class="hidden lg:flex flex-col">
+                        <h1 class="text-white text-base font-medium">{{ user.primer_nombre }} {{ user.primer_apellido }}</h1>
+                        <p class="text-primary text-xs">Profesor</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 px-2 py-4 space-y-1">
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="{{ url_for('front.dashboard') }}">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                    <span class="hidden lg:inline text-sm font-medium">Mi Horario</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg" href="#">
+                    <span class="material-symbols-outlined fill">shield_person</span>
+                    <span class="hidden lg:inline text-sm font-medium">Comandantes</span>
+                </a>
+            </nav>
+            <div class="px-2 py-4 mt-auto border-t border-white/5">
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="{{ url_for('front.configuracion') }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span class="hidden lg:inline text-sm font-medium">Configuración</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg mt-1" href="{{ url_for('auth.logout') }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="hidden lg:inline text-sm font-medium">Cerrar Sesión</span>
+                </a>
+            </div>
+        </aside>
+        <main class="flex-1 p-4 lg:p-8">
+            <div class="max-w-5xl mx-auto">
+                <header class="mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-2">Gestionar Comandantes de Curso</h1>
+                    <p class="text-gray-400 text-sm">Asigna estudiantes como comandantes para que puedan gestionar asistencias</p>
+                </header>
+
+                {% for course in courses %}
+                <div class="bg-forest-card rounded-2xl border border-white/10 p-6 mb-6">
+                    <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">school</span>
+                        {{ course.name }}
+                    </h2>
+                    
+                    <div class="space-y-2">
+                        {% set students = course_students.get(course.id, []) %}
+                        {% if students %}
+                            {% for student in students %}
+                            <div class="flex items-center justify-between bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold">
+                                        {{ student.primer_nombre[0] if student.primer_nombre else 'A' }}{{ student.primer_apellido[0] if student.primer_apellido else 'A' }}
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-medium">{{ student.primer_nombre }} {{ student.primer_apellido }}</p>
+                                        <p class="text-gray-400 text-xs">CI: {{ student.ci or 'S/N' }}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onclick="toggleComandante({{ student.id }}, this)"
+                                    class="px-4 py-2 rounded-lg font-medium text-sm transition-all {% if student.es_comandante %}bg-primary text-background-dark{% else %}bg-white/10 text-gray-400 hover:bg-white/20{% endif %}"
+                                >
+                                    {% if student.es_comandante %}
+                                        <span class="material-symbols-outlined text-sm align-middle">check_circle</span> Comandante
+                                    {% else %}
+                                        <span class="material-symbols-outlined text-sm align-middle">add_circle</span> Asignar
+                                    {% endif %}
+                                </button>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-gray-500 text-center py-4">No hay estudiantes inscritos en esta materia</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+    function toggleComandante(userId, btn) {
+        btn.disabled = true;
+        fetch(`/auth/toggle_comandante/${userId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.message) {
+                if (data.es_comandante) {
+                    btn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition-all bg-primary text-background-dark';
+                    btn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle">check_circle</span> Comandante';
+                } else {
+                    btn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition-all bg-white/10 text-gray-400 hover:bg-white/20';
+                    btn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle">add_circle</span> Asignar';
+                }
+                alert(data.message);
+            } else {
+                alert('Error: ' + (data.error || ''));
+            }
+            btn.disabled = false;
+        })
+        .catch(() => {
+            alert('Error de red');
+            btn.disabled = false;
+        });
+    }
+    </script>
+</body>
+</html>

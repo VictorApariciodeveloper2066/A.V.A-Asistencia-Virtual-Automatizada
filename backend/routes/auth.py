@@ -165,8 +165,8 @@ def generate_code(course_id):
     if 'username' not in session:
         return jsonify({"error": "No autorizado"}), 401
     user = User.query.filter_by(username=session['username']).first()
-    if not user or user.role != 'teacher':
-        return jsonify({"error": "Solo profesores pueden generar códigos"}), 403
+    if not user or (user.role != 'teacher' and not (user.role == 'student' and user.es_comandante)):
+        return jsonify({"error": "Solo profesores y comandantes pueden generar códigos"}), 403
 
     course = Course.query.get(course_id)
     if not course:
@@ -189,6 +189,21 @@ def generate_code(course_id):
 
     course.session_code = new_code
     course.session_expires = expires
+    db.session.commit()
+    
+    # Registrar log
+    from backend.models import LogAsistencia
+    log = LogAsistencia(
+        course_id=course_id,
+        user_id=None,
+        modificado_por=user.id,
+        accion=f'Generó código de sesión: {new_code}',
+        estado_anterior=None,
+        estado_nuevo=None,
+        fecha=now.date(),
+        hora=now.time()
+    )
+    db.session.add(log)
     db.session.commit()
 
     return jsonify({"code": new_code, "expires": expires.isoformat() if expires else None}), 200
@@ -330,8 +345,8 @@ def bulk_attendance():
     if 'username' not in session:
         return jsonify({"error": "No autorizado"}), 401
     user = User.query.filter_by(username=session['username']).first()
-    if not user or user.role != 'teacher':
-        return jsonify({"error": "Solo profesores pueden actualizar asistencia masiva"}), 403
+    if not user or (user.role != 'teacher' and not (user.role == 'student' and user.es_comandante)):
+        return jsonify({"error": "Solo profesores y comandantes pueden actualizar asistencia masiva"}), 403
 
     data = request.get_json() or {}
     course_id = data.get('course_id')
@@ -344,6 +359,8 @@ def bulk_attendance():
     today = now.date()
     current_time = now.time()
 
+    from backend.models import LogAsistencia
+
     for item in attendance:
         try:
             uid = int(item.get('user_id'))
@@ -354,11 +371,33 @@ def bulk_attendance():
             continue
 
         asistencia = Asistencia.query.filter_by(user_id=uid, course_id=course_id, date=today).first()
+        estado_anterior = asistencia.state if asistencia else None
+        
+        alumno = User.query.get(uid)
+        nombre_alumno = f"{alumno.primer_nombre} {alumno.primer_apellido}" if alumno and alumno.primer_nombre else (alumno.username if alumno else 'Desconocido')
+        
         if not asistencia:
             asistencia = Asistencia(user_id=uid, course_id=course_id, date=today, time=current_time, state=state)
             db.session.add(asistencia)
+            accion = f'Cambió estado de {nombre_alumno} de Ausente a {state}'
         else:
-            asistencia.state = state
+            if asistencia.state != state:
+                accion = f'Cambió estado de {nombre_alumno} de {estado_anterior} a {state}'
+                asistencia.state = state
+            else:
+                continue
+        
+        log = LogAsistencia(
+            course_id=course_id,
+            user_id=uid,
+            modificado_por=user.id,
+            accion=accion,
+            estado_anterior=estado_anterior,
+            estado_nuevo=state,
+            fecha=today,
+            hora=current_time
+        )
+        db.session.add(log)
 
     db.session.commit()
     return jsonify({"message": "Asistencia actualizada correctamente"}), 200
@@ -413,8 +452,8 @@ def resolver_justificativo(justificativo_id):
         return jsonify({"error": "No autorizado"}), 401
     
     user = User.query.filter_by(username=session['username']).first()
-    if not user or user.role != 'teacher':
-        return jsonify({"error": "Solo profesores pueden resolver justificativos"}), 403
+    if not user or (user.role != 'teacher' and not (user.role == 'student' and user.es_comandante)):
+        return jsonify({"error": "Solo profesores y comandantes pueden resolver justificativos"}), 403
     
     data = request.get_json() or {}
     nuevo_estado = data.get('estado')
@@ -428,8 +467,10 @@ def resolver_justificativo(justificativo_id):
     
     justificativo.estado = nuevo_estado
     
+    now = datetime.now()
+    from backend.models import LogAsistencia
+    
     if nuevo_estado == 'Aceptado':
-        from datetime import datetime
         try:
             fecha = datetime.strptime(justificativo.fecha_clase, '%Y-%m-%d').date()
         except:
@@ -452,6 +493,34 @@ def resolver_justificativo(justificativo_id):
                 state='Justificado'
             )
             db.session.add(nueva_asistencia)
+        
+        # Log de aceptación
+        alumno = User.query.get(justificativo.user_id)
+        log = LogAsistencia(
+            course_id=justificativo.course_id,
+            user_id=justificativo.user_id,
+            modificado_por=user.id,
+            accion=f'Aceptó justificativo de {alumno.primer_nombre} {alumno.primer_apellido}',
+            estado_anterior=None,
+            estado_nuevo='Justificado',
+            fecha=now.date(),
+            hora=now.time()
+        )
+        db.session.add(log)
+    else:
+        # Log de rechazo
+        alumno = User.query.get(justificativo.user_id)
+        log = LogAsistencia(
+            course_id=justificativo.course_id,
+            user_id=justificativo.user_id,
+            modificado_por=user.id,
+            accion=f'Rechazó justificativo de {alumno.primer_nombre} {alumno.primer_apellido}',
+            estado_anterior=None,
+            estado_nuevo=None,
+            fecha=now.date(),
+            hora=now.time()
+        )
+        db.session.add(log)
     
     db.session.commit()
     return jsonify({"message": f"Justificativo {nuevo_estado.lower()}"}), 200
@@ -462,8 +531,8 @@ def guardar_historial():
     if 'username' not in session:
         return jsonify({"error": "No autorizado"}), 401
     user = User.query.filter_by(username=session['username']).first()
-    if not user or user.role != 'teacher':
-        return jsonify({"error": "Solo profesores pueden guardar historial"}), 403
+    if not user or (user.role != 'teacher' and not (user.role == 'student' and user.es_comandante)):
+        return jsonify({"error": "Solo profesores y comandantes pueden guardar historial"}), 403
 
     data = request.get_json() or {}
     course_id = data.get('course_id')
@@ -565,8 +634,8 @@ def actualizar_aula():
     if 'username' not in session:
         return jsonify({"error": "No autorizado"}), 401
     user = User.query.filter_by(username=session['username']).first()
-    if not user or user.role != 'teacher':
-        return jsonify({"error": "Solo profesores pueden actualizar el aula"}), 403
+    if not user or (user.role != 'teacher' and not (user.role == 'student' and user.es_comandante)):
+        return jsonify({"error": "Solo profesores y comandantes pueden actualizar el aula"}), 403
     
     data = request.get_json() or {}
     course_id = data.get('course_id')
@@ -775,3 +844,24 @@ def eliminar_cuenta():
     db.session.commit()
     session.pop('username', None)
     return jsonify({"message": "Cuenta eliminada"}), 200
+
+
+@auth_bp.route('/toggle_comandante/<int:user_id>', methods=['POST'])
+def toggle_comandante(user_id):
+    if 'username' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+    admin = User.query.filter_by(username=session['username']).first()
+    if not admin or admin.role != 'teacher':
+        return jsonify({"error": "Solo profesores pueden asignar comandantes"}), 403
+    
+    user = User.query.get(user_id)
+    if not user or user.role != 'student':
+        return jsonify({"error": "Usuario no encontrado o no es estudiante"}), 404
+    
+    user.es_comandante = not user.es_comandante
+    db.session.commit()
+    
+    return jsonify({
+        "message": f"Comandante {'activado' if user.es_comandante else 'desactivado'}",
+        "es_comandante": user.es_comandante
+    }), 200

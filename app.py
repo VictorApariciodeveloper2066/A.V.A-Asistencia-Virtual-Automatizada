@@ -43,10 +43,17 @@ def create_app():
     # Allow environment variables to override values and ensure secret is set
     app.secret_key = os.getenv('FLASK_SECRET_KEY', app.config.get('SECRET_KEY', 'supersecretkey'))
 
-    # Database configuration (override if needed)
-    # Use instance/user.db as primary DB path
-    instance_db_path = APP_DIR / 'instance' / 'users.db'
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{instance_db_path}"
+    # Database configuration
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        # Render/Heroku PostgreSQL
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        # Local SQLite
+        instance_db_path = APP_DIR / 'instance' / 'users.db'
+        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{instance_db_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Google OAuth configuration

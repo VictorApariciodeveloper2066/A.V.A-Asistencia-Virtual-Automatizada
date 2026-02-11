@@ -80,6 +80,8 @@
                         <p class="text-gray-500 dark:text-gray-400 text-xs font-normal leading-normal">
                             {% if user.role == 'teacher' %}
                                 Profesor
+                            {% elif user.es_comandante %}
+                                Comandante
                             {% else %}
                                 {{ user.career if user.career else '' }}
                             {% endif %}
@@ -120,6 +122,8 @@
                         <p class="text-gray-500 dark:text-gray-400">
                             {% if user.role == 'teacher' %}
                                 Profesor
+                            {% elif user.es_comandante %}
+                                Comandante de Curso - {{ user.career if user.career else '' }}
                             {% else %}
                                 Estudiante{% if user.career %} de {{ user.career }}{% endif %}
                             {% endif %}
@@ -130,9 +134,11 @@
                             <p id="current-date" class="text-sm font-medium text-gray-900 dark:text-white"></p>
                             <p id="current-time" class="text-xs text-gray-500 dark:text-gray-400"></p>
                         </div>
-                        <button
-                            class="p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 hover:text-primary transition-colors">
+                        <button id="notification-btn"
+                            class="p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 hover:text-primary transition-colors relative"
+                            onclick="toggleNotifications()">
                             <span class="material-symbols-outlined">notifications</span>
+                            <span id="notification-indicator" class="hidden absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
                         </button>
                     </div>
                 </header>
@@ -169,7 +175,7 @@
                                 {% endif %}
                                 <div class="flex justify-between items-start">
                                     <span class="text-[10px] font-mono text-gray-500">{{ c.start_time }} - {{ c.end_time }}</span>
-                                    {% if user.role == 'teacher' %}
+                                    {% if user.role == 'teacher' or (user.role == 'student' and user.es_comandante) %}
                                     <button onclick="editarAula({{ c.id }}, '{{ c.aula or '' }}')" class="text-gray-400 hover:text-primary transition-colors">
                                         <span class="material-symbols-outlined text-lg">edit_location</span>
                                     </button>
@@ -189,7 +195,7 @@
                                 </p>
                                 {% if c.can_mark %}
                                 <div class="mt-2">
-                                    {% if user.role == 'teacher' %}
+                                    {% if user.role == 'teacher' or (user.role == 'student' and user.es_comandante) %}
                                     <div class="flex flex-col gap-3 mt-4">
                                         <button onclick="generarCodigo({{ c.id }}, this)" 
                                                 class="w-full py-3 px-4 rounded-xl bg-primary text-background-dark font-bold text-sm hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
@@ -424,18 +430,59 @@ function guardarAsistenciaManual(courseId){
 
 // Sistema de notificaciones
 let notificationPermission = false;
+let notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+
+function toggleNotifications() {
+    const btn = document.getElementById('notification-btn');
+    const indicator = document.getElementById('notification-indicator');
+    
+    if (!notificationsEnabled) {
+        if ('Notification' in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    notificationPermission = true;
+                    notificationsEnabled = true;
+                    localStorage.setItem('notificationsEnabled', 'true');
+                    btn.classList.add('text-primary');
+                    btn.classList.remove('text-gray-500');
+                    indicator.classList.remove('hidden');
+                    alert('Notificaciones activadas');
+                } else {
+                    alert('Permiso de notificaciones denegado');
+                }
+            });
+        } else {
+            alert('Tu navegador no soporta notificaciones');
+        }
+    } else {
+        notificationsEnabled = false;
+        notificationPermission = false;
+        localStorage.setItem('notificationsEnabled', 'false');
+        btn.classList.remove('text-primary');
+        btn.classList.add('text-gray-500');
+        indicator.classList.add('hidden');
+        alert('Notificaciones desactivadas');
+    }
+}
 
 function solicitarPermisoNotificaciones() {
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-            notificationPermission = (permission === 'granted');
-        });
-    } else if ('Notification' in window && Notification.permission === 'granted') {
+    if ('Notification' in window && Notification.permission === 'granted') {
         notificationPermission = true;
+        if (notificationsEnabled) {
+            const btn = document.getElementById('notification-btn');
+            const indicator = document.getElementById('notification-indicator');
+            if (btn && indicator) {
+                btn.classList.add('text-primary');
+                btn.classList.remove('text-gray-500');
+                indicator.classList.remove('hidden');
+            }
+        }
     }
 }
 
 function verificarClasesActivas() {
+    if (!notificationsEnabled || !notificationPermission) return;
+    
     const now = new Date();
     const currentDay = now.getDay() === 0 ? 7 : now.getDay(); // 1=Lunes, 7=Domingo
     const currentTime = now.getHours() * 60 + now.getMinutes();

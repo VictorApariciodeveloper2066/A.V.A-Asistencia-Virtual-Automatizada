@@ -47,11 +47,19 @@
             <div class="p-4 border-b border-white/5">
                 <div class="flex items-center gap-3 justify-center lg:justify-start">
                     <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold border-2 border-primary/20">
-                        {{ profesor.primer_nombre[0] if profesor and profesor.primer_nombre else 'P' }}{{ profesor.primer_apellido[0] if profesor and profesor.primer_apellido else 'P' }}
+                        {{ user.primer_nombre[0] if user and user.primer_nombre else 'U' }}{{ user.primer_apellido[0] if user and user.primer_apellido else 'U' }}
                     </div>
                     <div class="hidden lg:flex flex-col">
-                        <h1 class="text-white text-base font-medium leading-normal">{{ profesor.primer_nombre if profesor and profesor.primer_nombre else 'Profesor' }} {{ profesor.primer_apellido if profesor and profesor.primer_apellido else '' }}</h1>
-                        <p class="text-primary text-xs font-normal leading-normal">{{ profesor.career if profesor and profesor.career else 'Facultad' }}</p>
+                        <h1 class="text-white text-base font-medium leading-normal">{{ user.primer_nombre if user and user.primer_nombre else 'Usuario' }} {{ user.primer_apellido if user and user.primer_apellido else '' }}</h1>
+                        <p class="text-primary text-xs font-normal leading-normal">
+                            {% if user.role == 'teacher' %}
+                                Profesor
+                            {% elif user.es_comandante %}
+                                Comandante
+                            {% else %}
+                                {{ user.career if user and user.career else 'Estudiante' }}
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -60,10 +68,17 @@
                     <span class="material-symbols-outlined">calendar_month</span>
                     <span class="hidden lg:inline text-sm font-medium">Mi Horario</span>
                 </a>
+                {% if user.role == 'teacher' or (user.role == 'student' and user.es_comandante) %}
                 <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="{{ url_for('front.ver_historial', course_id=historial.course_id) }}">
                     <span class="material-symbols-outlined">history</span>
                     <span class="hidden lg:inline text-sm font-medium">Historial</span>
                 </a>
+                {% else %}
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 rounded-lg" href="{{ url_for('front.historial_alumno') }}">
+                    <span class="material-symbols-outlined">history</span>
+                    <span class="hidden lg:inline text-sm font-medium">Historial</span>
+                </a>
+                {% endif %}
             </nav>
             <div class="px-2 py-4 mt-auto border-t border-white/5">
                 <a class="flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg mt-1" href="{{ url_for('auth.logout') }}">
@@ -129,6 +144,37 @@
                         </a>
                     </div>
                 </div>
+
+                <!-- Registro de Cambios -->
+                {% if logs %}
+                <div class="bg-forest-card rounded-xl p-4 md:p-6 border border-white/10 mb-6">
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-neon-green">history</span>
+                        Registro de Cambios
+                    </h3>
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        {% for log in logs %}
+                        <div class="flex items-start gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                            <div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+                                {{ log.modificador.primer_nombre[0] if log.modificador.primer_nombre else 'P' }}{{ log.modificador.primer_apellido[0] if log.modificador.primer_apellido else 'P' }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-sm font-medium text-white">{{ log.modificador.primer_nombre }} {{ log.modificador.primer_apellido }}</p>
+                                    {% if log.modificador.role == 'teacher' %}
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-bold">Profesor</span>
+                                    {% elif log.modificador.es_comandante %}
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold">Comandante</span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-xs text-gray-300 mb-1">{{ log.accion }}</p>
+                                <p class="text-xs text-gray-500">{{ log.hora.strftime('%I:%M %p') }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                     <!-- Presentes -->

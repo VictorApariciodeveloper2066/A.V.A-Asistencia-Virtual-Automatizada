@@ -17,6 +17,7 @@ class User(db.Model):
     avatar_url = db.Column(db.String(255), nullable=True)
     notificaciones_activas = db.Column(db.Boolean, default=True)
     formato_hora = db.Column(db.String(10), default='12h')
+    es_comandante = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -103,3 +104,21 @@ class DetalleAsistencia(db.Model):
     estado = db.Column(db.String(20), nullable=False)
 
     usuario = db.relationship('User', backref='detalles_asistencia')
+
+
+class LogAsistencia(db.Model):
+    __tablename__ = 'log_asistencia'
+
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Nullable para acciones generales
+    modificado_por = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    accion = db.Column(db.String(200), nullable=False)
+    estado_anterior = db.Column(db.String(20), nullable=True)
+    estado_nuevo = db.Column(db.String(20), nullable=True)
+    fecha = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.Time, nullable=False)
+
+    curso = db.relationship('Course', foreign_keys=[course_id])
+    alumno = db.relationship('User', foreign_keys=[user_id])
+    modificador = db.relationship('User', foreign_keys=[modificado_por])

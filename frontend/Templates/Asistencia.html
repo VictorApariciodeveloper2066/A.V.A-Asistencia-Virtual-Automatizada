@@ -203,9 +203,9 @@
                                     <th class="py-4 px-6 text-xs font-bold uppercase tracking-widest text-gray-400 text-right">Acción</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-white/5">
+                            <tbody class="divide-y divide-white/5" id="tabla-alumnos">
                                 {% for alumno in alumnos %}
-                                <tr class="hover:bg-white/[0.02] transition-colors group" data-user-id="{{ alumno.id }}">
+                                <tr class="hover:bg-white/[0.02] transition-colors group alumno-row" data-user-id="{{ alumno.id }}" style="display: none;">
                                     <td class="py-4 px-6">
                                         <span class="text-gray-500 font-mono text-sm">{{ loop.index }}</span>
                                     </td>
@@ -248,25 +248,103 @@
                         </table>
                     </div>
                     <div class="p-4 bg-white/5 border-t border-white/5 flex items-center justify-between">
-                        <p class="text-xs text-gray-500">Mostrando <span class="text-white font-bold">{{ alumnos|length }}</span> alumnos registrados</p>
+                        <p class="text-xs text-gray-500">Mostrando <span id="showing-range" class="text-white font-bold">1-10</span> de <span class="text-white font-bold">{{ alumnos|length }}</span> alumnos</p>
                         <div class="flex gap-2">
-                            <button class="p-1 rounded bg-white/5 text-gray-400 hover:text-white disabled:opacity-30" disabled>
+                            <button id="btn-prev" onclick="cambiarPagina(-1)" class="p-1 rounded bg-white/5 text-gray-400 hover:text-white disabled:opacity-30 transition-all" disabled>
                                 <span class="material-symbols-outlined">chevron_left</span>
                             </button>
-                            <button class="p-1 rounded bg-white/5 text-gray-400 hover:text-white">
+                            <button id="btn-next" onclick="cambiarPagina(1)" class="p-1 rounded bg-white/5 text-gray-400 hover:text-white transition-all">
                                 <span class="material-symbols-outlined">chevron_right</span>
                             </button>
                         </div>
                     </div>
+                </div>
+                
+                <div class="mt-6 bg-forest border border-white/5 rounded-2xl p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="material-symbols-outlined text-primary">history</span>
+                        <h2 class="text-lg font-bold text-white">Registro de Cambios</h2>
+                    </div>
+                    
+                    {% if logs %}
+                    <div class="space-y-2 max-h-64 overflow-y-auto">
+                        {% for log in logs %}
+                        <div class="bg-white/5 rounded-lg p-3 flex items-start gap-3">
+                            <div class="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0">
+                                {{ log.modificador.primer_nombre[0] if log.modificador.primer_nombre else 'U' }}{{ log.modificador.primer_apellido[0] if log.modificador.primer_apellido else 'U' }}
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white text-sm">
+                                    <span class="font-bold">{{ log.modificador.primer_nombre }} {{ log.modificador.primer_apellido }}</span>
+                                    {% if log.modificador.role == 'teacher' %}
+                                    <span class="text-xs text-primary">(Profesor)</span>
+                                    {% elif log.modificador.es_comandante %}
+                                    <span class="text-xs text-yellow-500">(Comandante)</span>
+                                    {% endif %}
+                                </p>
+                                <p class="text-gray-300 text-xs mt-1">{{ log.accion }}</p>
+                                <p class="text-xs text-gray-500 mt-1">{{ log.hora.strftime('%I:%M %p') }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-sm text-center py-4">No hay cambios registrados hoy</p>
+                    {% endif %}
                 </div>
             </div>
         </main>
     </div>
 
     <script>
+    let paginaActual = 1;
+    const alumnosPorPagina = 10;
+    let totalAlumnos = 0;
+    
+    function mostrarPagina(pagina) {
+        const rows = document.querySelectorAll('.alumno-row');
+        totalAlumnos = rows.length;
+        const totalPaginas = Math.ceil(totalAlumnos / alumnosPorPagina);
+        
+        if (pagina < 1) pagina = 1;
+        if (pagina > totalPaginas) pagina = totalPaginas;
+        paginaActual = pagina;
+        
+        const inicio = (pagina - 1) * alumnosPorPagina;
+        const fin = inicio + alumnosPorPagina;
+        
+        rows.forEach((row, index) => {
+            row.style.display = (index >= inicio && index < fin) ? '' : 'none';
+        });
+        
+        const showingRange = document.getElementById('showing-range');
+        if (showingRange) {
+            const mostrandoInicio = totalAlumnos > 0 ? inicio + 1 : 0;
+            const mostrandoFin = Math.min(fin, totalAlumnos);
+            showingRange.textContent = `${mostrandoInicio}-${mostrandoFin}`;
+        }
+        
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        if (btnPrev) btnPrev.disabled = (pagina === 1);
+        if (btnNext) btnNext.disabled = (pagina === totalPaginas || totalAlumnos === 0);
+    }
+    
+    function cambiarPagina(direccion) {
+        mostrarPagina(paginaActual + direccion);
+    }
+    
     document.getElementById('select-all')?.addEventListener('change', function(e){
-        document.querySelectorAll('.alumno-check').forEach(cb => cb.checked = e.target.checked);
-        document.querySelectorAll('.alumno-check').forEach(cb => actualizarBotonesUI(cb));
+        const rows = document.querySelectorAll('.alumno-row');
+        rows.forEach(row => {
+            if (row.style.display !== 'none') {
+                const cb = row.querySelector('.alumno-check');
+                if (cb) {
+                    cb.checked = e.target.checked;
+                    actualizarBotonesUI(cb);
+                }
+            }
+        });
     });
 
     function guardarAsistenciaManual(courseId){
@@ -371,9 +449,35 @@
     }
 
     document.addEventListener('DOMContentLoaded', function(){
-        // initialize UI based on checkboxes
-        document.querySelectorAll('.alumno-check').forEach(cb => actualizarBotonesUI(cb));
+        // initialize UI based on current state from badges
+        document.querySelectorAll('tr[data-user-id]').forEach(row => {
+            const badge = row.querySelector('.badge-status');
+            const estado = badge ? badge.innerText.trim() : 'Ausente';
+            const btnPresente = row.querySelector('.btn-presente');
+            const btnJustificado = row.querySelector('.btn-justificado');
+            const btnAusente = row.querySelector('.btn-ausente');
+            const checkbox = row.querySelector('.alumno-check');
+            
+            // Set checkbox based on state
+            if(checkbox) checkbox.checked = (estado === 'Presente');
+            
+            // Set button opacity
+            if(btnPresente && btnJustificado && btnAusente){
+                btnPresente.classList.add('opacity-20');
+                btnJustificado.classList.add('opacity-20');
+                btnAusente.classList.add('opacity-20');
+                
+                if(estado === 'Presente'){
+                    btnPresente.classList.remove('opacity-20');
+                } else if(estado === 'Justificado'){
+                    btnJustificado.classList.remove('opacity-20');
+                } else {
+                    btnAusente.classList.remove('opacity-20');
+                }
+            }
+        });
         actualizarContadores();
+        mostrarPagina(1);
     });
 
     function resolverJustificativo(justificativoId, alumnoId, nuevoEstado) {

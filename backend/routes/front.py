@@ -88,7 +88,7 @@ def dashboard():
     # If user is a teacher, build students_by_course for active classes
     students_by_course = {}
     try:
-        if user.role == 'teacher':
+        if user.role == 'teacher' or (user.role == 'student' and user.es_comandante):
             current_day = now.weekday() + 1
             for c in courses:
                 # check active session
@@ -152,7 +152,7 @@ def ver_asistencia(course_id):
     if 'username' not in session:
         return redirect(url_for('front.login_page'))
     profesor = User.query.filter_by(username=session['username']).first()
-    if not profesor or profesor.role != 'teacher':
+    if not profesor or (profesor.role != 'teacher' and not (profesor.role == 'student' and profesor.es_comandante)):
         return redirect(url_for('front.index'))
 
     course = Course.query.get_or_404(course_id)
@@ -166,7 +166,7 @@ def ver_asistencia(course_id):
         is_active = False
 
     # get enrolled students (role == student)
-    alumnos_inscritos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == course_id, User.role == 'student').all()
+    alumnos_inscritos = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id==course_id, User.role == 'student').all()
 
     # Get today's attendance for this course and map by user_id
     today = date.today()
@@ -182,8 +182,21 @@ def ver_asistencia(course_id):
     db.session.commit()
 
     # Get pending justificativos for this course
-    from backend.models import Justificativo
+    from backend.models import Justificativo, LogAsistencia
     justificativos_pendientes = Justificativo.query.filter_by(course_id=course_id, estado='Pendiente').all()
+    
+    # Get logs for today
+    logs_raw = LogAsistencia.query.filter_by(course_id=course_id, fecha=today).order_by(LogAsistencia.hora.desc()).all()
+    
+    logs_agrupados = []
+    for log in logs_raw:
+        modificador = User.query.get(log.modificado_por)
+        if modificador:
+            logs_agrupados.append({
+                'modificador': modificador,
+                'hora': log.hora,
+                'accion': log.accion
+            })
 
     # Build a simple list/dict for the template so the template doesn't need to access model attrs directly
     lista_final = []
@@ -205,7 +218,7 @@ def ver_asistencia(course_id):
             'username': getattr(alumno, 'username', None)
         })
 
-    return render_template('Asistencia.html', alumnos=lista_final, course=course, profesor=profesor, now=now, is_active=is_active, justificativos_pendientes=justificativos_pendientes)
+    return render_template('Asistencia.html', alumnos=lista_final, course=course, profesor=profesor, now=now, is_active=is_active, justificativos_pendientes=justificativos_pendientes, logs=logs_agrupados)
 
 
 @front_bp.route('/justificativos/<int:course_id>')
@@ -213,7 +226,7 @@ def ver_justificativos(course_id):
     if 'username' not in session:
         return redirect(url_for('front.login_page'))
     profesor = User.query.filter_by(username=session['username']).first()
-    if not profesor or profesor.role != 'teacher':
+    if not profesor or (profesor.role != 'teacher' and not (profesor.role == 'student' and profesor.es_comandante)):
         return redirect(url_for('front.index'))
 
     course = Course.query.get_or_404(course_id)
@@ -244,7 +257,7 @@ def ver_historial(course_id):
     if 'username' not in session:
         return redirect(url_for('front.login_page'))
     profesor = User.query.filter_by(username=session['username']).first()
-    if not profesor or profesor.role != 'teacher':
+    if not profesor or (profesor.role != 'teacher' and not (profesor.role == 'student' and profesor.es_comandante)):
         return redirect(url_for('front.index'))
 
     course = Course.query.get_or_404(course_id)
@@ -257,7 +270,7 @@ def historial_general():
     if 'username' not in session:
         return redirect(url_for('front.login_page'))
     profesor = User.query.filter_by(username=session['username']).first()
-    if not profesor or profesor.role != 'teacher':
+    if not profesor or (profesor.role != 'teacher' and not (profesor.role == 'student' and profesor.es_comandante)):
         return redirect(url_for('front.index'))
 
     courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == profesor.id).all()
@@ -271,7 +284,7 @@ def historial_alumno():
         return redirect(url_for('front.login_page'))
     user = User.query.filter_by(username=session['username']).first()
     
-    if user.role == 'teacher':
+    if user.role == 'teacher' or (user.role == 'student' and user.es_comandante):
         return redirect(url_for('front.historial_general'))
     
     # Obtener cursos del alumno
@@ -291,9 +304,9 @@ def ver_historial_detalle(historial_id):
     
     historial = HistorialAsistencia.query.get_or_404(historial_id)
     
-    # Verificar que el usuario tenga acceso (profesor del curso o alumno inscrito)
-    if user.role == 'teacher':
-        # Verificar que el profesor esté asociado al curso
+    # Verificar que el usuario tenga acceso (profesor del curso, comandante o alumno inscrito)
+    if user.role == 'teacher' or (user.role == 'student' and user.es_comandante):
+        # Verificar que esté asociado al curso
         inscrito = db.session.query(User_course).filter_by(user_id=user.id, course_id=historial.course_id).first()
         if not inscrito:
             return redirect(url_for('front.index'))
@@ -325,10 +338,28 @@ def ver_historial_detalle(historial_id):
             else:
                 ausentes.append(alumno_data)
     
-    # Obtener el profesor del curso
+    # Obtener el profesor del curso (solo teachers, no comandantes)
     profesor = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == historial.course_id, User.role == 'teacher').first()
     
-    return render_template('historial_detalle.html', historial=historial, presentes=presentes, justificados=justificados, ausentes=ausentes, profesor=profesor or user, user=user)
+    # Si no hay profesor asignado, buscar cualquier teacher en el sistema como fallback
+    if not profesor:
+        profesor = User.query.filter_by(role='teacher').first()
+    
+    # Obtener logs del día
+    from backend.models import LogAsistencia
+    logs_raw = LogAsistencia.query.filter_by(course_id=historial.course_id, fecha=historial.fecha).order_by(LogAsistencia.hora.desc()).all()
+    
+    logs_agrupados = []
+    for log in logs_raw:
+        modificador = User.query.get(log.modificado_por)
+        if modificador:
+            logs_agrupados.append({
+                'modificador': modificador,
+                'hora': log.hora,
+                'accion': log.accion
+            })
+    
+    return render_template('historial_detalle.html', historial=historial, presentes=presentes, justificados=justificados, ausentes=ausentes, profesor=profesor, user=user, logs=logs_agrupados)
 
 @front_bp.route('/descargar_pdf/<int:historial_id>')
 def descargar_pdf(historial_id):
@@ -584,3 +615,23 @@ def configuracion():
     user_course_ids = [c.id for c in user_courses]
     
     return render_template('configuration.html', user=user, all_courses=all_courses, user_course_ids=user_course_ids)
+
+
+@front_bp.route('/gestionar_comandantes')
+def gestionar_comandantes():
+    if 'username' not in session:
+        return redirect(url_for('front.login_page'))
+    user = User.query.filter_by(username=session['username']).first()
+    if not user or user.role != 'teacher':
+        return redirect(url_for('front.dashboard'))
+    
+    # Obtener cursos del profesor
+    courses = db.session.query(Course).join(User_course, Course.id == User_course.course_id).filter(User_course.user_id == user.id).all()
+    
+    # Obtener estudiantes por curso
+    course_students = {}
+    for course in courses:
+        students = db.session.query(User).join(User_course, User.id == User_course.user_id).filter(User_course.course_id == course.id, User.role == 'student').all()
+        course_students[course.id] = students
+    
+    return render_template('gestionar_comandantes.html', user=user, courses=courses, course_students=course_students)
