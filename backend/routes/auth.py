@@ -890,11 +890,20 @@ def toggle_comandante(user_id):
 def fix_sequences_temp():
     from sqlalchemy import text
     try:
-        tables = ['user', 'course', 'user_course', 'asistencia', 'justificativo', 'historial_asistencia', 'detalle_asistencia', 'log_asistencia']
+        tables = [
+            ('"user"', 'user_id_seq'),
+            ('course', 'course_id_seq'),
+            ('user_course', 'user_course_id_seq'),
+            ('asistencia', 'asistencia_id_seq'),
+            ('justificativo', 'justificativo_id_seq'),
+            ('historial_asistencia', 'historial_asistencia_id_seq'),
+            ('detalle_asistencia', 'detalle_asistencia_id_seq'),
+            ('log_asistencia', 'log_asistencia_id_seq')
+        ]
         results = []
-        for table in tables:
-            result = db.session.execute(text(f"SELECT COALESCE((SELECT MAX(id) FROM {table}), 0) + 1 as next_id")).scalar()
-            db.session.execute(text(f"ALTER SEQUENCE {table}_id_seq RESTART WITH {result}"))
+        for table, seq in tables:
+            result = db.session.execute(text(f"SELECT COALESCE(MAX(id), 0) + 1 FROM {table}")).scalar()
+            db.session.execute(text(f"ALTER SEQUENCE {seq} RESTART WITH {result}"))
             results.append(f"{table}: {result}")
         db.session.commit()
         return jsonify({"message": "Secuencias reseteadas", "results": results}), 200
