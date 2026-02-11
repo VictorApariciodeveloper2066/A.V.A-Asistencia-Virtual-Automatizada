@@ -94,10 +94,11 @@ def create_app():
             tables = inspector.get_table_names()
             
             # Fix PostgreSQL sequences after migration
-            if database_url and 'postgresql' in database_url:
+            if database_url and 'postgresql' in database_url and tables:
                 try:
                     for table in ['user', 'course', 'user_course', 'asistencia', 'justificativo', 'historial_asistencia', 'detalle_asistencia', 'log_asistencia']:
-                        db.session.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE(MAX(id), 1)) FROM {table}"))
+                        if table in tables:
+                            db.session.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM {table}), 0) + 1)"))
                     db.session.commit()
                     print('✅ Secuencias PostgreSQL sincronizadas')
                 except Exception as e:
