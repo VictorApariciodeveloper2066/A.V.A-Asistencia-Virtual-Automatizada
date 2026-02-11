@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 import shutil
+from backend.models import User, Course
 
 load_dotenv()
 APP_DIR = Path(__file__).resolve().parent
@@ -100,7 +101,6 @@ def create_app():
                 # Crear datos iniciales solo si no existen
                 if not User.query.first():
                     print('📝 Creando datos iniciales...')
-                    from backend.models import User, Course
                     
                     admin = User(username='admin', email='admin@ava.com')
                     admin.set_password('admin123')
