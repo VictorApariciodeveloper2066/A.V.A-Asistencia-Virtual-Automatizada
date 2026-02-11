@@ -884,3 +884,19 @@ def toggle_comandante(user_id):
         "message": f"Comandante {'activado' if user.es_comandante else 'desactivado'}",
         "es_comandante": user.es_comandante
     }), 200
+
+
+@auth_bp.route('/fix_sequences_temp', methods=['GET'])
+def fix_sequences_temp():
+    from sqlalchemy import text
+    try:
+        tables = ['user', 'course', 'user_course', 'asistencia', 'justificativo', 'historial_asistencia', 'detalle_asistencia', 'log_asistencia']
+        results = []
+        for table in tables:
+            result = db.session.execute(text(f"SELECT COALESCE((SELECT MAX(id) FROM {table}), 0) + 1 as next_id")).scalar()
+            db.session.execute(text(f"ALTER SEQUENCE {table}_id_seq RESTART WITH {result}"))
+            results.append(f"{table}: {result}")
+        db.session.commit()
+        return jsonify({"message": "Secuencias reseteadas", "results": results}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
