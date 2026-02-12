@@ -919,7 +919,7 @@ def update_horarios_temp():
             ("UPDATE course SET start_time = '04:00:00', end_time = '08:00:00' WHERE name = 'Inglés'", "Inglés: 04:00-08:00"),
             ("UPDATE course SET start_time = '08:00:00', end_time = '12:00:00' WHERE name = 'Matemáticas'", "Matemáticas: 08:00-12:00"),
             ("UPDATE course SET start_time = '12:00:00', end_time = '23:59:59' WHERE name = 'Historia'", "Historia: 12:00-23:59"),
-            ("UPDATE course SET start_time = '16:00:00', end_time = '20:00:00' WHERE name = 'Programación'", "Programación: 16:00-20:00"),
+            ("UPDATE course SET start_time = '04:00:00', end_time = '20:00:00' WHERE name = 'Programación'", "Programación: 04:00-20:00"),
             ("UPDATE course SET start_time = '04:00:00', end_time = '08:00:00' WHERE name = 'Educación Física'", "Educación Física: 04:00-08:00"),
         ]
         results = []
