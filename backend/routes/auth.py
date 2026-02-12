@@ -909,3 +909,24 @@ def fix_sequences_temp():
         return jsonify({"message": "Secuencias reseteadas", "results": results}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@auth_bp.route('/update_horarios_temp', methods=['GET'])
+def update_horarios_temp():
+    from sqlalchemy import text
+    try:
+        updates = [
+            ("UPDATE course SET start_time = '04:00:00', end_time = '08:00:00' WHERE name = 'Inglés'", "Inglés: 04:00-08:00"),
+            ("UPDATE course SET start_time = '08:00:00', end_time = '12:00:00' WHERE name = 'Matemáticas'", "Matemáticas: 08:00-12:00"),
+            ("UPDATE course SET start_time = '12:00:00', end_time = '16:00:00' WHERE name = 'Historia'", "Historia: 12:00-16:00"),
+            ("UPDATE course SET start_time = '16:00:00', end_time = '20:00:00' WHERE name = 'Programación'", "Programación: 16:00-20:00"),
+            ("UPDATE course SET start_time = '04:00:00', end_time = '08:00:00' WHERE name = 'Educación Física'", "Educación Física: 04:00-08:00"),
+        ]
+        results = []
+        for query, desc in updates:
+            db.session.execute(text(query))
+            results.append(desc)
+        db.session.commit()
+        return jsonify({"message": "Horarios actualizados (4 AM - 8 PM)", "results": results}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
